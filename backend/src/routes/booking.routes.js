@@ -5,7 +5,9 @@ const {
   getAllBookings, 
   getBookingById,
   updateBooking,
-  updateBookingStatus
+  updateBookingStatus,
+  deleteBooking,
+  softDeleteBooking
 } = require("../controllers/booking.controller");
 
 // POST /api/v1/bookings
@@ -22,5 +24,11 @@ router.put("/:id", updateBooking);
 
 // PATCH /api/v1/bookings/:id/status
 router.patch("/:id/status", updateBookingStatus);
+
+// DELETE /api/v1/bookings/:id
+router.delete("/:id", deleteBooking);
+
+// PATCH /api/v1/bookings/:id/soft-delete
+router.patch("/:id/soft-delete", softDeleteBooking);
 
 module.exports = router;

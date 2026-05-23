@@ -377,10 +377,106 @@ const updateBookingStatus = async (req, res) => {
   }
 };
 
+/**
+ * Hard delete a booking permanently from database.
+ * DELETE /api/v1/bookings/:id
+ */
+const deleteBooking = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // 1. Validate MongoDB ObjectId format
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid booking ID format"
+      });
+    }
+
+    // 2. Perform permanent database deletion
+    const deletedBooking = await Booking.findByIdAndDelete(id);
+
+    // 3. Return 404 if booking not found
+    if (!deletedBooking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found"
+      });
+    }
+
+    // 4. Return success response
+    return res.status(200).json({
+      success: true,
+      message: "Booking deleted successfully"
+    });
+
+  } catch (error) {
+    console.error("Error during hard delete:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error during booking deletion"
+    });
+  }
+};
+
+/**
+ * Soft delete a booking (mark isDeleted = true).
+ * PATCH /api/v1/bookings/:id/soft-delete
+ */
+const softDeleteBooking = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // 1. Validate MongoDB ObjectId format
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid booking ID format"
+      });
+    }
+
+    // 2. Find booking to check state and existence
+    const booking = await Booking.findById(id);
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found"
+      });
+    }
+
+    // 3. Prevent double soft delete (return 409 Conflict)
+    if (booking.isDeleted) {
+      return res.status(409).json({
+        success: false,
+        message: "Booking already deleted"
+      });
+    }
+
+    // 4. Perform soft deletion (set isDeleted = true)
+    booking.isDeleted = true;
+    await booking.save();
+
+    // 5. Return success response
+    return res.status(200).json({
+      success: true,
+      message: "Booking soft deleted successfully"
+    });
+
+  } catch (error) {
+    console.error("Error during soft delete:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error during soft deletion"
+    });
+  }
+};
+
 module.exports = {
   createBooking,
   getAllBookings,
   getBookingById,
   updateBooking,
-  updateBookingStatus
+  updateBookingStatus,
+  deleteBooking,
+  softDeleteBooking
 };
