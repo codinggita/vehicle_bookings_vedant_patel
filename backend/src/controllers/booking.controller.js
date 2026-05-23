@@ -126,6 +126,28 @@ const createBooking = async (req, res) => {
   }
 };
 
+/**
+ * Retrieve all active bookings.
+ * GET /api/v1/bookings
+ */
+const getAllBookings = async (req, res) => {
+  try {
+    const bookings = await Booking.find({ isDeleted: false });
+    return res.status(200).json({
+      success: true,
+      message: "Bookings fetched successfully",
+      data: bookings
+    });
+  } catch (error) {
+    console.error("Error fetching bookings:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error during fetching bookings"
+    });
+  }
+};
+
 module.exports = {
-  createBooking
+  createBooking,
+  getAllBookings
 };
