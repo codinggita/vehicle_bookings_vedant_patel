@@ -47,11 +47,17 @@ A scalable and production-ready vehicle booking platform built with modern backe
 vehicle-bookings/
 │
 ├── backend/
+│   ├── data/
+│   │   └── bookings.json
 │   ├── src/
 │   │   ├── config/
 │   │   │   └── db.js
 │   │   ├── models/
 │   │   │   └── booking.model.js
+│   │   ├── seed/
+│   │   │   └── importBookings.js
+│   │   ├── utils/
+│   │   │   └── dataCleaner.js
 │   │   ├── app.js
 │   │   └── server.js
 │   ├── .env
@@ -72,6 +78,7 @@ vehicle-bookings/
 + MongoDB Atlas Connection Configured
 + Dataset Analysis Completed
 + MongoDB Schema Design Completed (Mongoose Model & Indexes)
++ Database Seed Script Configured & Executed (Bulk Import)
 ```
 
 ---
