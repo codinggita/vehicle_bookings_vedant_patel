@@ -52,8 +52,12 @@ vehicle-bookings/
 │   ├── src/
 │   │   ├── config/
 │   │   │   └── db.js
+│   │   ├── controllers/
+│   │   │   └── booking.controller.js
 │   │   ├── models/
 │   │   │   └── booking.model.js
+│   │   ├── routes/
+│   │   │   └── booking.routes.js
 │   │   ├── seed/
 │   │   │   └── importBookings.js
 │   │   ├── utils/
@@ -79,6 +83,7 @@ vehicle-bookings/
 + Dataset Analysis Completed
 + MongoDB Schema Design Completed (Mongoose Model & Indexes)
 + Database Seed Script Configured & Executed (Bulk Import)
++ Create Booking API Completed (POST /api/v1/bookings)
 ```
 
 ---
