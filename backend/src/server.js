@@ -3,7 +3,11 @@ const dotenv = require("dotenv");
 // Load environment variables immediately before importing other modules
 dotenv.config();
 
+const connectDB = require("./config/db");
 const app = require("./app");
+
+// Connect to Database
+connectDB();
 
 const PORT = process.env.PORT || 5000;
 

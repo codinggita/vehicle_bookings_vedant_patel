@@ -48,6 +48,8 @@ vehicle-bookings/
 │
 ├── backend/
 │   ├── src/
+│   │   ├── config/
+│   │   │   └── db.js
 │   │   ├── app.js
 │   │   └── server.js
 │   ├── .env
@@ -65,6 +67,7 @@ vehicle-bookings/
 ```diff
 + Backend Planning Completed
 + Environment Variables Configured (dotenv Setup)
++ MongoDB Atlas Connection Configured
 + Dataset Analysis In Progress
 + MongoDB Schema Design Pending
 ```
