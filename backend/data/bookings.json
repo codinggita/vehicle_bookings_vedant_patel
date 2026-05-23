@@ -1,0 +1,62 @@
+[
+  {
+    "customerName": "John Doe",
+    "customerPhone": "+15550199",
+    "vehicleType": "suv",
+    "pickupLocation": "Times Square, NY",
+    "dropLocation": "JFK Airport, NY",
+    "distance": "15.4",
+    "fare": "75.50",
+    "bookingStatus": "completed",
+    "paymentMethod": "card",
+    "paymentStatus": "paid",
+    "rating": "4.8",
+    "bookingDate": "2025-05-12T10:30:00Z",
+    "rideStartTime": "2025-05-12T10:45:00Z",
+    "rideEndTime": "2025-05-12T11:20:00Z"
+  },
+  {
+    "customerName": "  Jane Smith  ",
+    "customerPhone": "555-0144",
+    "vehicleType": "sedan",
+    "pickupLocation": "Central Park, NY",
+    "dropLocation": "Penn Station, NY",
+    "distance": "4.2",
+    "fare": "18.00",
+    "bookingStatus": "completed",
+    "paymentMethod": "cash",
+    "paymentStatus": "paid",
+    "rating": "5",
+    "bookingDate": "2025-05-13T14:20:00Z",
+    "rideStartTime": "2025-05-13T14:30:00Z",
+    "rideEndTime": "2025-05-13T14:50:00Z"
+  },
+  {
+    "customerName": "#NAME?",
+    "customerPhone": "undefined",
+    "vehicleType": "  SUV ",
+    "pickupLocation": "LaGuardia Airport, NY",
+    "dropLocation": "Brooklyn Bridge, NY",
+    "distance": "12.8 km",
+    "fare": "55.00",
+    "bookingStatus": "PENDING",
+    "paymentMethod": "upi",
+    "paymentStatus": "pending",
+    "rating": "N/A",
+    "bookingDate": "2025-05-14T08:00:00Z"
+  },
+  {
+    "customerName": "Alice Johnson",
+    "customerPhone": "+15550188",
+    "vehicleType": "luxury",
+    "pickupLocation": "Wall Street, NY",
+    "dropLocation": "Broadway, NY",
+    "distance": "3.5",
+    "fare": "35.00",
+    "bookingStatus": "cancelled",
+    "paymentMethod": "net_banking",
+    "paymentStatus": "failed",
+    "rating": "null",
+    "bookingDate": "2025-05-14T16:45:00Z"
+  }
+]
