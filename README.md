@@ -47,6 +47,12 @@ A scalable and production-ready vehicle booking platform built with modern backe
 vehicle-bookings/
 │
 ├── backend/
+│   ├── src/
+│   │   ├── app.js
+│   │   └── server.js
+│   ├── .env
+│   ├── package.json
+│   └── node_modules/
 ├── frontend/
 ├── README.md
 └── .gitignore
@@ -57,7 +63,8 @@ vehicle-bookings/
 ## 🚀 Project Status
 
 ```diff
-+ Backend Planning Started
++ Backend Planning Completed
++ Environment Variables Configured (dotenv Setup)
 + Dataset Analysis In Progress
 + MongoDB Schema Design Pending
 ```
