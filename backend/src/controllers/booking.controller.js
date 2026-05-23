@@ -190,8 +190,197 @@ const getBookingById = async (req, res) => {
   }
 };
 
+/**
+ * Update a booking fully.
+ * PUT /api/v1/bookings/:id
+ */
+const updateBooking = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // 1. Validate MongoDB ObjectId format
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid booking ID format"
+      });
+    }
+
+    // 2. Validate request body is not empty
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Request body cannot be empty"
+      });
+    }
+
+    // 3. Soft Delete Awareness: Verify booking exists and is not deleted
+    const existingBooking = await Booking.findOne({ _id: id, isDeleted: false });
+    if (!existingBooking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found"
+      });
+    }
+
+    // 4. Sanitize and normalize input fields if provided
+    const updateData = {};
+    const allowedFields = [
+      "customerName",
+      "customerPhone",
+      "vehicleType",
+      "pickupLocation",
+      "dropLocation",
+      "distance",
+      "fare",
+      "bookingStatus",
+      "paymentMethod",
+      "paymentStatus",
+      "rating",
+      "bookingDate",
+      "rideStartTime",
+      "rideEndTime"
+    ];
+
+    for (const field of allowedFields) {
+      if (req.body[field] !== undefined) {
+        if (field === "distance") {
+          const dist = toNumber(req.body.distance);
+          if (dist === null || dist < 0) {
+            return res.status(400).json({ success: false, message: "Distance must be a valid non-negative number" });
+          }
+          updateData.distance = dist;
+        } else if (field === "fare") {
+          const f = toNumber(req.body.fare);
+          if (f === null || f < 0) {
+            return res.status(400).json({ success: false, message: "Fare must be a valid non-negative number" });
+          }
+          updateData.fare = f;
+        } else if (field === "rating") {
+          if (req.body.rating === null || req.body.rating === "") {
+            updateData.rating = null;
+          } else {
+            const r = toNumber(req.body.rating);
+            if (r === null || r < 1 || r > 5) {
+              return res.status(400).json({ success: false, message: "Rating must be between 1 and 5" });
+            }
+            updateData.rating = r;
+          }
+        } else if (["vehicleType", "bookingStatus", "paymentMethod", "paymentStatus"].includes(field)) {
+          updateData[field] = sanitizeString(req.body[field], true); // Force lowercase
+        } else if (["bookingDate", "rideStartTime", "rideEndTime"].includes(field)) {
+          updateData[field] = req.body[field] ? toDate(req.body[field]) : null;
+        } else {
+          updateData[field] = sanitizeString(req.body[field]);
+        }
+      }
+    }
+
+    // 5. Update and return new document using findByIdAndUpdate with Mongoose schema validation enabled
+    const updatedBooking = await Booking.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true, runValidators: true }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Booking updated successfully",
+      data: updatedBooking
+    });
+
+  } catch (error) {
+    console.error("Error updating booking:", error);
+
+    if (error.name === "ValidationError") {
+      const messages = Object.values(error.errors).map((val) => val.message);
+      return res.status(400).json({ success: false, message: messages.join(", ") });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error during booking update"
+    });
+  }
+};
+
+/**
+ * Update only booking status.
+ * PATCH /api/v1/bookings/:id/status
+ */
+const updateBookingStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { bookingStatus } = req.body;
+
+    // 1. Validate MongoDB ObjectId format
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid booking ID format"
+      });
+    }
+
+    // 2. Validate request body status presence
+    if (!bookingStatus || String(bookingStatus).trim() === "") {
+      return res.status(400).json({
+        success: false,
+        message: "Booking status is required"
+      });
+    }
+
+    // 3. Validate bookingStatus enum values
+    const allowedStatuses = ["pending", "confirmed", "completed", "cancelled"];
+    const sanitizedStatus = sanitizeString(bookingStatus, true);
+
+    if (!allowedStatuses.includes(sanitizedStatus)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid booking status"
+      });
+    }
+
+    // 4. Soft Delete Awareness: Verify booking exists and is not deleted
+    const existingBooking = await Booking.findOne({ _id: id, isDeleted: false });
+    if (!existingBooking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found"
+      });
+    }
+
+    // 5. Update only the status field
+    const updatedBooking = await Booking.findByIdAndUpdate(
+      id,
+      { bookingStatus: sanitizedStatus },
+      { new: true, runValidators: true }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Booking status updated successfully",
+      data: updatedBooking
+    });
+
+  } catch (error) {
+    console.error("Error updating booking status:", error);
+
+    if (error.name === "ValidationError") {
+      const messages = Object.values(error.errors).map((val) => val.message);
+      return res.status(400).json({ success: false, message: messages.join(", ") });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error during booking status update"
+    });
+  }
+};
+
 module.exports = {
   createBooking,
   getAllBookings,
-  getBookingById
+  getBookingById,
+  updateBooking,
+  updateBookingStatus
 };
