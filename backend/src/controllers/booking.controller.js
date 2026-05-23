@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Booking = require("../models/booking.model");
 const {
   toNumber,
@@ -147,7 +148,50 @@ const getAllBookings = async (req, res) => {
   }
 };
 
+/**
+ * Retrieve a single booking by ID.
+ * GET /api/v1/bookings/:id
+ */
+const getBookingById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // 1. Validate MongoDB ObjectId format to prevent database query crashes
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid booking ID format"
+      });
+    }
+
+    // 2. Query MongoDB, excluding soft-deleted records
+    const booking = await Booking.findOne({ _id: id, isDeleted: false });
+
+    // 3. Return 404 if document does not exist
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found"
+      });
+    }
+
+    // 4. Return successful response with clean structure
+    return res.status(200).json({
+      success: true,
+      message: "Booking fetched successfully",
+      data: booking
+    });
+  } catch (error) {
+    console.error("Error fetching booking by ID:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error during fetching booking"
+    });
+  }
+};
+
 module.exports = {
   createBooking,
-  getAllBookings
+  getAllBookings,
+  getBookingById
 };

@@ -84,6 +84,7 @@ vehicle-bookings/
 + MongoDB Schema Design Completed (Mongoose Model & Indexes)
 + Database Seed Script Configured & Executed (Bulk Import)
 + Create Booking API Completed (POST /api/v1/bookings)
++ Read Booking APIs Completed (GET /api/v1/bookings & GET /api/v1/bookings/:id)
 ```
 
 ---
