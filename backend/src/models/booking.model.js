@@ -98,6 +98,13 @@ const bookingSchema = new mongoose.Schema(
   }
 );
 
+// Indexes for query performance optimization
+bookingSchema.index({ bookingStatus: 1 });
+bookingSchema.index({ vehicleType: 1 });
+bookingSchema.index({ bookingDate: -1 });
+bookingSchema.index({ paymentStatus: 1 });
+bookingSchema.index({ customerName: 1 });
+
 const Booking = mongoose.model("Booking", bookingSchema);
 
 module.exports = Booking;
