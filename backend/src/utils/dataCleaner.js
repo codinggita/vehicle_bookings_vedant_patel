@@ -51,7 +51,48 @@ const toNumber = (val, fallback = null) => {
   return parsed;
 };
 
+/**
+ * Safely converts a raw value into a Date object.
+ * Validates dates and returns null for invalid formats to prevent MongoDB errors.
+ * 
+ * @param {any} val - The raw date value to convert.
+ * @param {any} fallback - Optional fallback if conversion fails.
+ * @returns {Date|null} Valid Date object or null.
+ */
+const toDate = (val, fallback = null) => {
+  const cleanedVal = toNull(val);
+  if (cleanedVal === null) return fallback;
+  
+  // Try to parse the date
+  const parsedDate = new Date(cleanedVal);
+  
+  // Check if the date is valid (getTime() is not NaN)
+  if (isNaN(parsedDate.getTime())) {
+    return fallback;
+  }
+  
+  return parsedDate;
+};
+
+/**
+ * Cleans string inputs by trimming whitespaces and checking for null values.
+ * Can also normalize casing if specified.
+ * 
+ * @param {any} val - The raw string value to clean.
+ * @param {boolean} normalizeCasing - Whether to convert to lowercase/uppercase.
+ * @returns {string|null} The cleaned string or null.
+ */
+const sanitizeString = (val, normalizeCasing = false) => {
+  const cleanedVal = toNull(val);
+  if (cleanedVal === null) return null;
+  
+  const trimmed = String(cleanedVal).trim();
+  return normalizeCasing ? trimmed.toLowerCase() : trimmed;
+};
+
 module.exports = {
   toNull,
-  toNumber
+  toNumber,
+  toDate,
+  sanitizeString
 };
