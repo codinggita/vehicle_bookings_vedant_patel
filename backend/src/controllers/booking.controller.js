@@ -6,6 +6,8 @@ const {
   sanitizeString
 } = require("../utils/dataCleaner");
 const { getPaginationConfig } = require("../utils/pagination");
+const { getFilterConfig } = require("../utils/filter");
+const { getSortConfig } = require("../utils/sort");
 
 /**
  * Create a new vehicle booking.
@@ -137,18 +139,23 @@ const getAllBookings = async (req, res) => {
     // 1. Process query parameters using pagination helper
     const { page, limit, skip } = getPaginationConfig(req.query);
 
-    // 2. Query configurations (only fetch records where isDeleted is false)
-    const query = { isDeleted: false };
+    // 2. Extract dynamic filters and sorting options from query parameters
+    const filter = getFilterConfig(req.query);
+    const sort = getSortConfig(req.query);
 
-    // 3. Run queries in parallel for optimal database performance
+    // 3. Combined query configuration (always including soft delete awareness)
+    const query = { ...filter, isDeleted: false };
+
+    // 4. Run queries in parallel for optimal database performance
     const [totalBookings, bookings] = await Promise.all([
       Booking.countDocuments(query),
       Booking.find(query)
+        .sort(sort)
         .skip(skip)
         .limit(limit)
     ]);
 
-    // 4. Return standard-compliant paginated response
+    // 5. Return standard-compliant paginated response
     return res.status(200).json({
       success: true,
       message: "Bookings fetched successfully",
