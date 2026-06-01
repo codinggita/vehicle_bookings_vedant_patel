@@ -501,6 +501,82 @@ const softDeleteBooking = async (req, res) => {
   }
 };
 
+/**
+ * Retrieve bookings matching a specific status.
+ * GET /api/v1/bookings/status/:status
+ */
+const getBookingsByStatus = async (req, res) => {
+  try {
+    const { status } = req.params;
+
+    // 1. Sanitize and validate booking status
+    const sanitizedStatus = sanitizeString(status, true);
+    const allowedStatuses = ["pending", "confirmed", "completed", "cancelled"];
+
+    if (!sanitizedStatus || !allowedStatuses.includes(sanitizedStatus)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid booking status"
+      });
+    }
+
+    // 2. Query MongoDB, excluding soft deleted records
+    const bookings = await Booking.find({ bookingStatus: sanitizedStatus, isDeleted: false });
+
+    // 3. Return RESTful response
+    return res.status(200).json({
+      success: true,
+      message: "Bookings fetched successfully",
+      count: bookings.length,
+      data: bookings
+    });
+  } catch (error) {
+    console.error("Error fetching bookings by status:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error during fetching bookings by status"
+    });
+  }
+};
+
+/**
+ * Retrieve bookings matching a specific vehicle type.
+ * GET /api/v1/bookings/vehicle/:vehicleType
+ */
+const getBookingsByVehicleType = async (req, res) => {
+  try {
+    const { vehicleType } = req.params;
+
+    // 1. Sanitize and validate vehicle type
+    const sanitizedVehicle = sanitizeString(vehicleType, true);
+    const allowedVehicles = ["sedan", "suv", "hatchback", "luxury"];
+
+    if (!sanitizedVehicle || !allowedVehicles.includes(sanitizedVehicle)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid vehicle type"
+      });
+    }
+
+    // 2. Query MongoDB, excluding soft deleted records
+    const bookings = await Booking.find({ vehicleType: sanitizedVehicle, isDeleted: false });
+
+    // 3. Return RESTful response
+    return res.status(200).json({
+      success: true,
+      message: "Bookings fetched successfully",
+      count: bookings.length,
+      data: bookings
+    });
+  } catch (error) {
+    console.error("Error fetching bookings by vehicle type:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error during fetching bookings by vehicle type"
+    });
+  }
+};
+
 module.exports = {
   createBooking,
   getAllBookings,
@@ -508,5 +584,7 @@ module.exports = {
   updateBooking,
   updateBookingStatus,
   deleteBooking,
-  softDeleteBooking
+  softDeleteBooking,
+  getBookingsByStatus,
+  getBookingsByVehicleType
 };
