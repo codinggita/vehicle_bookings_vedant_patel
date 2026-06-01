@@ -5,6 +5,7 @@ const {
   toDate,
   sanitizeString
 } = require("../utils/dataCleaner");
+const { getPaginationConfig } = require("../utils/pagination");
 
 /**
  * Create a new vehicle booking.
@@ -128,15 +129,35 @@ const createBooking = async (req, res) => {
 };
 
 /**
- * Retrieve all active bookings.
+ * Retrieve all active bookings with pagination support.
  * GET /api/v1/bookings
  */
 const getAllBookings = async (req, res) => {
   try {
-    const bookings = await Booking.find({ isDeleted: false });
+    // 1. Process query parameters using pagination helper
+    const { page, limit, skip } = getPaginationConfig(req.query);
+
+    // 2. Query configurations (only fetch records where isDeleted is false)
+    const query = { isDeleted: false };
+
+    // 3. Run queries in parallel for optimal database performance
+    const [totalBookings, bookings] = await Promise.all([
+      Booking.countDocuments(query),
+      Booking.find(query)
+        .skip(skip)
+        .limit(limit)
+    ]);
+
+    // 4. Return standard-compliant paginated response
     return res.status(200).json({
       success: true,
       message: "Bookings fetched successfully",
+      pagination: {
+        total: totalBookings,
+        page,
+        limit,
+        totalPages: Math.ceil(totalBookings / limit)
+      },
       data: bookings
     });
   } catch (error) {
