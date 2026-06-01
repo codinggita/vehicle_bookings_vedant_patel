@@ -64,7 +64,8 @@ vehicle-bookings/
 │
 ├── backend/
 │   ├── data/
-│   │   └── bookings.json           # Raw dataset for seeding
+│   │   ├── bookings.json                # Full dataset (18,289 records, ~10 MB)
+│   │   └── bookings_sample_preview.json # Sample preview (20 records)
 │   ├── src/
 │   │   ├── config/
 │   │   │   └── db.js               # MongoDB Atlas connection
@@ -90,6 +91,129 @@ vehicle-bookings/
 ├── README.md
 └── .gitignore
 ```
+
+---
+
+## 📊 Dataset Overview — 18,289 Real Ride-Hailing Records
+
+This project uses a **massive real-world dataset** containing **18,289 vehicle booking records** from a ride-hailing platform (similar to Ola/Uber). The data covers ride bookings across **50 locations in Bangalore, India** during **July 2024**.
+
+> 📁 **Full Dataset:** [`backend/data/bookings.json`](backend/data/bookings.json) (~10 MB, 18,289 records)
+> 👁️ **Preview (20 records):** [`backend/data/bookings_sample_preview.json`](backend/data/bookings_sample_preview.json)
+
+### 📈 Key Statistics at a Glance
+
+| Metric | Value |
+| :--- | ---: |
+| **Total Booking Records** | 18,289 |
+| **Dataset Size** | ~10 MB |
+| **Unique Locations (Bangalore)** | 50 |
+| **Total Ride Revenue** | ₹1,00,27,196 |
+| **Total Distance Covered** | 2,58,782 km |
+| **Average Driver Rating** | ⭐ 4.00 / 5.0 |
+| **Average Customer Rating** | ⭐ 3.99 / 5.0 |
+
+### 🚗 Vehicle Type Distribution
+
+| Vehicle Type | Total Bookings | Share |
+| :--- | ---: | ---: |
+| eBike | 2,681 | 14.7% |
+| Bike | 2,656 | 14.5% |
+| Prime Sedan | 2,637 | 14.4% |
+| Auto | 2,632 | 14.4% |
+| Prime SUV | 2,630 | 14.4% |
+| Mini | 2,552 | 13.9% |
+| Prime Plus | 2,501 | 13.7% |
+
+### 📋 Booking Status Breakdown
+
+| Status | Count | Share |
+| :--- | ---: | ---: |
+| ✅ Success | 11,340 | 62.0% |
+| ❌ Canceled by Driver | 3,280 | 17.9% |
+| 🚫 Canceled by Customer | 1,862 | 10.2% |
+| 🔍 Driver Not Found | 1,807 | 9.9% |
+
+### 💳 Payment Method Distribution
+
+| Payment Method | Count | Share |
+| :--- | ---: | ---: |
+| Not Applicable (Canceled/Failed) | 6,949 | 38.0% |
+| Cash | 6,222 | 34.0% |
+| UPI | 4,578 | 25.0% |
+| Credit Card | 434 | 2.4% |
+| Debit Card | 106 | 0.6% |
+
+### 🗂️ Dataset Schema (19 Fields Per Record)
+
+| # | Field Name | Type | Description |
+| :---: | :--- | :--- | :--- |
+| 1 | `Date` | String | Booking date & time (`YYYY-MM-DD HH:mm:ss`) |
+| 2 | `Time` | String | Booking time (`HH:mm:ss`) |
+| 3 | `Booking_ID` | String | Unique booking reference (e.g., `CNR7153255142`) |
+| 4 | `Booking_Status` | String | `Success`, `Canceled by Driver`, `Canceled by Customer`, `Driver Not Found` |
+| 5 | `Customer_ID` | String | Unique customer ID (e.g., `CID713523`) |
+| 6 | `Vehicle_Type` | String | `Prime Sedan`, `Prime SUV`, `Prime Plus`, `Mini`, `Auto`, `Bike`, `eBike` |
+| 7 | `Pickup_Location` | String | Pickup area in Bangalore (50 unique locations) |
+| 8 | `Drop_Location` | String | Drop area in Bangalore (50 unique locations) |
+| 9 | `V_TAT` | Number | Vehicle Turnaround Time (minutes) |
+| 10 | `C_TAT` | Number | Customer Turnaround Time (minutes) |
+| 11 | `Canceled_Rides_by_Customer` | String | Cancellation reason by customer |
+| 12 | `Canceled_Rides_by_Driver` | String | Cancellation reason by driver |
+| 13 | `Incomplete_Rides` | String | Whether ride was incomplete (`Yes` / `No`) |
+| 14 | `Incomplete_Rides_Reason` | String | `Customer Demand`, `Vehicle Breakdown`, `Other Issue` |
+| 15 | `Booking_Value` | Number | Fare amount in ₹ |
+| 16 | `Payment_Method` | String | `Cash`, `UPI`, `Credit Card`, `Debit Card` |
+| 17 | `Ride_Distance` | Number | Distance in km |
+| 18 | `Driver_Ratings` | Number | Driver rating (1.0 - 5.0) |
+| 19 | `Customer_Rating` | Number | Customer rating (1.0 - 5.0) |
+
+### 🔍 Sample Record
+
+```json
+{
+  "Date": "2024-07-26 14:00:00",
+  "Time": "14:00:00",
+  "Booking_ID": "CNR7153255142",
+  "Booking_Status": "Canceled by Driver",
+  "Customer_ID": "CID713523",
+  "Vehicle_Type": "Prime Sedan",
+  "Pickup_Location": "Tumkur Road",
+  "Drop_Location": "RT Nagar",
+  "V_TAT": "null",
+  "C_TAT": "null",
+  "Canceled_Rides_by_Customer": "null",
+  "Canceled_Rides_by_Driver": "Personal & Car related issue",
+  "Incomplete_Rides": "null",
+  "Incomplete_Rides_Reason": "null",
+  "Booking_Value": "444",
+  "Payment_Method": "null",
+  "Ride_Distance": "0",
+  "Driver_Ratings": "null",
+  "Customer_Rating": "null"
+}
+```
+
+### 📍 All 50 Bangalore Locations Covered
+
+<details>
+<summary>Click to expand full location list</summary>
+
+BTM Layout, Banashankari, Bannerghatta Road, Basavanagudi, Bellandur, Chamarajpet, Chickpet, Cox Town, Devanahalli, Electronic City, Frazer Town, HSR Layout, Hebbal, Hennur, Hosur Road, Hulimavu, Indiranagar, JP Nagar, Jayanagar, KR Puram, Kadugodi, Kammanahalli, Kengeri, Koramangala, Langford Town, MG Road, Magadi Road, Majestic, Malleshwaram, Marathahalli, Mysore Road, Nagarbhavi, Padmanabhanagar, Peenya, RT Nagar, Rajajinagar, Rajarajeshwari Nagar, Ramamurthy Nagar, Richmond Town, Sahakar Nagar, Sarjapur Road, Shantinagar, Shivajinagar, Tumkur Road, Ulsoor, Varthur, Vijayanagar, Whitefield, Yelahanka, Yeshwanthpur
+
+</details>
+
+### ⚠️ Dirty Data Patterns Found
+
+The raw dataset contains several dirty data issues that our `dataCleaner.js` utility handles:
+
+| Dirty Pattern | Example | Fields Affected | Handling |
+| :--- | :--- | :--- | :--- |
+| String `"null"` instead of actual `null` | `"V_TAT": "null"` | V_TAT, C_TAT, Ratings, Payment | Convert to native `null` |
+| Corrupt Excel values | `"Vehicle Images": "#NAME?"` | Vehicle Images | Skip field entirely |
+| Numbers stored as strings | `"Booking_Value": "444"` | Fare, Distance, Ratings | Parse to `Number` |
+| BOM character in key | `"﻿Date"` | Date field | Strip BOM (`\uFEFF`) |
+| Empty string keys | `"": ""` | Trailing empty field | Skip entirely |
 
 ---
 
