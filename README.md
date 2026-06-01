@@ -242,6 +242,32 @@ Base URL: `/api/v1/bookings`
 
 ---
 
+## 📬 Postman API Collection & Documentation
+
+To test and verify the APIs, we have created a ready-to-import Postman Collection that includes pre-configured requests, schema details, descriptions, and example responses for all endpoints.
+
+### 📥 How to Import & Use the Collection
+1. **Download the Collection File**: Use the pre-exported collection file located in the root directory: [`Vehicle_Bookings_API.postman_collection.json`](./Vehicle_Bookings_API.postman_collection.json)
+2. **Import into Postman**:
+   - Open Postman.
+   - Click the **Import** button in the top-left or sidebar.
+   - Drag & drop or browse to select the `Vehicle_Bookings_API.postman_collection.json` file.
+   - Click **Import** to add the collection to your workspace.
+3. **Configure Environment / Variables**:
+   - Under the collection settings, ensure the `baseUrl` variable is set to your local server (e.g., `http://localhost:5000/api/v1`).
+4. **Run and Test**:
+   - Start the backend server (`npm run dev`).
+   - Execute the requests sequentially in the order described in the collection folders.
+
+### 🌐 How to Share & Publish Documentation on Postman
+To generate a professional public documentation webpage for this collection:
+1. **View Documentation**: Right-click the imported collection name (**🚖 Vehicle Bookings API**) and click **View Documentation**.
+2. **Publish**: In the top-right corner, click **Publish**.
+3. **Configure Settings**: Leave the default settings (it will automatically use the markdown documentation and collection variables) and click **Publish Collection**.
+4. **Get Public Link**: Postman will generate a public URL (e.g., `https://documenter.getpostman.com/view/...`). You can share this URL with your class, classmates, and professors!
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites
