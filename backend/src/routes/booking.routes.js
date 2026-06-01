@@ -13,9 +13,10 @@ const {
   getBookingsByCustomer,
   getBookingsByPaymentMethod
 } = require("../controllers/booking.controller");
+const { protect } = require("../middlewares/auth.middleware");
 
 // POST /api/v1/bookings
-router.post("/", createBooking);
+router.post("/", protect, createBooking);
 
 // GET /api/v1/bookings
 router.get("/", getAllBookings);
@@ -36,15 +37,15 @@ router.get("/payment/:paymentMethod", getBookingsByPaymentMethod);
 router.get("/:id", getBookingById);
 
 // PUT /api/v1/bookings/:id
-router.put("/:id", updateBooking);
+router.put("/:id", protect, updateBooking);
 
 // PATCH /api/v1/bookings/:id/status
-router.patch("/:id/status", updateBookingStatus);
+router.patch("/:id/status", protect, updateBookingStatus);
 
 // DELETE /api/v1/bookings/:id
-router.delete("/:id", deleteBooking);
+router.delete("/:id", protect, deleteBooking);
 
 // PATCH /api/v1/bookings/:id/soft-delete
-router.patch("/:id/soft-delete", softDeleteBooking);
+router.patch("/:id/soft-delete", protect, softDeleteBooking);
 
 module.exports = router;
