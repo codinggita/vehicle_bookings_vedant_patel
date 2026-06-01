@@ -104,6 +104,7 @@ bookingSchema.index({ vehicleType: 1 });
 bookingSchema.index({ bookingDate: -1 });
 bookingSchema.index({ paymentStatus: 1 });
 bookingSchema.index({ customerName: 1 });
+bookingSchema.index({ paymentMethod: 1 });
 
 const Booking = mongoose.model("Booking", bookingSchema);
 

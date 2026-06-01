@@ -41,7 +41,7 @@ const getDashboardStats = asyncHandler(async (req, res) => {
  * GET /api/v1/admin/users
  */
 const getAllUsers = asyncHandler(async (req, res) => {
-  const users = await User.find();
+  const users = await User.find().lean();
 
   return res.status(200).json({
     success: true,
@@ -65,7 +65,7 @@ const getSingleUser = asyncHandler(async (req, res) => {
     });
   }
 
-  const user = await User.findById(id);
+  const user = await User.findById(id).lean();
 
   if (!user) {
     return res.status(404).json({
