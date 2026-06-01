@@ -577,6 +577,86 @@ const getBookingsByVehicleType = async (req, res) => {
   }
 };
 
+/**
+ * Retrieve bookings matching a customer name.
+ * Supports partial and case-insensitive regex matches.
+ * GET /api/v1/bookings/customer/:customerName
+ */
+const getBookingsByCustomer = async (req, res) => {
+  try {
+    const { customerName } = req.params;
+
+    if (!customerName || String(customerName).trim() === "") {
+      return res.status(400).json({
+        success: false,
+        message: "Customer name parameter is required"
+      });
+    }
+
+    const sanitizedCustomer = sanitizeString(customerName);
+    
+    // Safety helper: Escape regex special characters to prevent injection
+    const escapeRegex = (string) => string.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+    const escapedCustomer = escapeRegex(sanitizedCustomer);
+
+    // Query MongoDB with case-insensitive partial match
+    const bookings = await Booking.find({
+      customerName: { $regex: escapedCustomer, $options: "i" },
+      isDeleted: false
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Bookings fetched successfully",
+      count: bookings.length,
+      data: bookings
+    });
+  } catch (error) {
+    console.error("Error fetching bookings by customer:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error during fetching bookings by customer"
+    });
+  }
+};
+
+/**
+ * Retrieve bookings matching a payment method.
+ * GET /api/v1/bookings/payment/:paymentMethod
+ */
+const getBookingsByPaymentMethod = async (req, res) => {
+  try {
+    const { paymentMethod } = req.params;
+
+    // Normalize input to lowercase to support case-insensitive parameter input
+    const sanitizedMethod = sanitizeString(paymentMethod, true);
+    const allowedMethods = ["cash", "card", "upi", "net_banking"];
+
+    if (!sanitizedMethod || !allowedMethods.includes(sanitizedMethod)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid payment method"
+      });
+    }
+
+    // Query MongoDB, excluding soft deleted records
+    const bookings = await Booking.find({ paymentMethod: sanitizedMethod, isDeleted: false });
+
+    return res.status(200).json({
+      success: true,
+      message: "Bookings fetched successfully",
+      count: bookings.length,
+      data: bookings
+    });
+  } catch (error) {
+    console.error("Error fetching bookings by payment method:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error during fetching bookings by payment method"
+    });
+  }
+};
+
 module.exports = {
   createBooking,
   getAllBookings,
@@ -586,5 +666,7 @@ module.exports = {
   deleteBooking,
   softDeleteBooking,
   getBookingsByStatus,
-  getBookingsByVehicleType
+  getBookingsByVehicleType,
+  getBookingsByCustomer,
+  getBookingsByPaymentMethod
 };
