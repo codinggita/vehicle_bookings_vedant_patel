@@ -148,13 +148,14 @@ const getAllBookings = async (req, res) => {
     // 3. Combined query configuration (always including soft delete awareness)
     const query = { ...filter, ...search, isDeleted: false };
 
-    // 4. Run queries in parallel for optimal database performance
+    // 4. Run queries in parallel for optimal database performance (using .lean() for read-only optimization)
     const [totalBookings, bookings] = await Promise.all([
       Booking.countDocuments(query),
       Booking.find(query)
         .sort(sort)
         .skip(skip)
         .limit(limit)
+        .lean()
     ]);
 
     // 5. Return standard-compliant paginated response
@@ -194,8 +195,8 @@ const getBookingById = async (req, res) => {
       });
     }
 
-    // 2. Query MongoDB, excluding soft-deleted records
-    const booking = await Booking.findOne({ _id: id, isDeleted: false });
+    // 2. Query MongoDB, excluding soft-deleted records (using .lean() for read-only optimization)
+    const booking = await Booking.findOne({ _id: id, isDeleted: false }).lean();
 
     // 3. Return 404 if document does not exist
     if (!booking) {
@@ -520,8 +521,8 @@ const getBookingsByStatus = async (req, res) => {
       });
     }
 
-    // 2. Query MongoDB, excluding soft deleted records
-    const bookings = await Booking.find({ bookingStatus: sanitizedStatus, isDeleted: false });
+    // 2. Query MongoDB, excluding soft deleted records (using .lean() for read-only optimization)
+    const bookings = await Booking.find({ bookingStatus: sanitizedStatus, isDeleted: false }).lean();
 
     // 3. Return RESTful response
     return res.status(200).json({
@@ -558,8 +559,8 @@ const getBookingsByVehicleType = async (req, res) => {
       });
     }
 
-    // 2. Query MongoDB, excluding soft deleted records
-    const bookings = await Booking.find({ vehicleType: sanitizedVehicle, isDeleted: false });
+    // 2. Query MongoDB, excluding soft deleted records (using .lean() for read-only optimization)
+    const bookings = await Booking.find({ vehicleType: sanitizedVehicle, isDeleted: false }).lean();
 
     // 3. Return RESTful response
     return res.status(200).json({
@@ -599,11 +600,11 @@ const getBookingsByCustomer = async (req, res) => {
     const escapeRegex = (string) => string.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
     const escapedCustomer = escapeRegex(sanitizedCustomer);
 
-    // Query MongoDB with case-insensitive partial match
+    // Query MongoDB with case-insensitive partial match (using .lean() for read-only optimization)
     const bookings = await Booking.find({
       customerName: { $regex: escapedCustomer, $options: "i" },
       isDeleted: false
-    });
+    }).lean();
 
     return res.status(200).json({
       success: true,
@@ -639,8 +640,8 @@ const getBookingsByPaymentMethod = async (req, res) => {
       });
     }
 
-    // Query MongoDB, excluding soft deleted records
-    const bookings = await Booking.find({ paymentMethod: sanitizedMethod, isDeleted: false });
+    // Query MongoDB, excluding soft deleted records (using .lean() for read-only optimization)
+    const bookings = await Booking.find({ paymentMethod: sanitizedMethod, isDeleted: false }).lean();
 
     return res.status(200).json({
       success: true,
