@@ -8,6 +8,7 @@ const {
 const { getPaginationConfig } = require("../utils/pagination");
 const { getFilterConfig } = require("../utils/filter");
 const { getSortConfig } = require("../utils/sort");
+const { getSearchConfig } = require("../utils/search");
 
 /**
  * Create a new vehicle booking.
@@ -139,12 +140,13 @@ const getAllBookings = async (req, res) => {
     // 1. Process query parameters using pagination helper
     const { page, limit, skip } = getPaginationConfig(req.query);
 
-    // 2. Extract dynamic filters and sorting options from query parameters
+    // 2. Extract dynamic filters, search queries, and sorting options from query parameters
     const filter = getFilterConfig(req.query);
+    const search = getSearchConfig(req.query);
     const sort = getSortConfig(req.query);
 
     // 3. Combined query configuration (always including soft delete awareness)
-    const query = { ...filter, isDeleted: false };
+    const query = { ...filter, ...search, isDeleted: false };
 
     // 4. Run queries in parallel for optimal database performance
     const [totalBookings, bookings] = await Promise.all([
