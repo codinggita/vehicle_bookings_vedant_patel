@@ -49,9 +49,8 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// High-speed single field index on email for accelerated authentication lookups
-userSchema.index({ email: 1 });
 
 const User = mongoose.model("User", userSchema);
 
 module.exports = User;
+
