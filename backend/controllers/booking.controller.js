@@ -1,14 +1,161 @@
 const mongoose = require("mongoose");
-const BookingService = require("../services/booking.service");
-const {
-  toNumber,
-  toDate,
-  sanitizeString
-} = require("../utils/dataCleaner");
-const { getPaginationConfig } = require("../utils/pagination");
-const { getFilterConfig } = require("../utils/filter");
-const { getSortConfig } = require("../utils/sort");
-const { getSearchConfig } = require("../utils/search");
+const Booking = require("../models/booking.model");
+
+// === INLINED UTILITIES ===
+
+const toNull = (val) => {
+  if (val === undefined || val === null) return null;
+  const str = String(val).trim().toLowerCase();
+  if (str === "" || str === "null" || str === "undefined" || str === "n/a" || str === "#name?") {
+    return null;
+  }
+  return val;
+};
+
+const toNumber = (val, fallback = null) => {
+  const cleanedVal = toNull(val);
+  if (cleanedVal === null) return fallback;
+  const numStr = String(cleanedVal).replace(/[^0-9.-]/g, "");
+  const parsed = parseFloat(numStr);
+  return isNaN(parsed) ? fallback : parsed;
+};
+
+const toDate = (val, fallback = null) => {
+  const cleanedVal = toNull(val);
+  if (cleanedVal === null) return fallback;
+  const parsedDate = new Date(cleanedVal);
+  return isNaN(parsedDate.getTime()) ? fallback : parsedDate;
+};
+
+const sanitizeString = (val, normalizeCasing = false) => {
+  const cleanedVal = toNull(val);
+  if (cleanedVal === null) return null;
+  const trimmed = String(cleanedVal).trim();
+  return normalizeCasing ? trimmed.toLowerCase() : trimmed;
+};
+
+const getPaginationConfig = (query = {}, options = {}) => {
+  let page = parseInt(query.page, 10);
+  let limit = parseInt(query.limit, 10);
+
+  const defaultPage = options.defaultPage || 1;
+  const defaultLimit = options.defaultLimit || 10;
+  const maxLimit = options.maxLimit || 100;
+
+  if (isNaN(page) || page <= 0) page = defaultPage;
+  if (isNaN(limit) || limit <= 0) limit = defaultLimit;
+  if (limit > maxLimit) limit = maxLimit;
+
+  const skip = (page - 1) * limit;
+  return { page, limit, skip };
+};
+
+const getFilterConfig = (query = {}) => {
+  const filter = {};
+
+  if (query.status !== undefined && query.status !== "") {
+    const sanitizedStatus = sanitizeString(query.status, true);
+    const allowedStatuses = ["pending", "confirmed", "completed", "cancelled"];
+    if (sanitizedStatus && allowedStatuses.includes(sanitizedStatus)) {
+      filter.bookingStatus = sanitizedStatus;
+    }
+  }
+
+  if (query.paymentStatus !== undefined && query.paymentStatus !== "") {
+    const sanitizedPayment = sanitizeString(query.paymentStatus, true);
+    const allowedPayments = ["pending", "paid", "failed", "refunded"];
+    if (sanitizedPayment && allowedPayments.includes(sanitizedPayment)) {
+      filter.paymentStatus = sanitizedPayment;
+    }
+  }
+
+  if (query.vehicleType !== undefined && query.vehicleType !== "") {
+    const sanitizedVehicle = sanitizeString(query.vehicleType, true);
+    const allowedVehicles = ["sedan", "suv", "hatchback", "luxury", "mini", "plus", "bike", "ebike", "auto"];
+    if (sanitizedVehicle && allowedVehicles.includes(sanitizedVehicle)) {
+      filter.vehicleType = sanitizedVehicle;
+    }
+  }
+
+  if (query.rating !== undefined && query.rating !== "") {
+    const parsedRating = toNumber(query.rating);
+    if (parsedRating !== null && parsedRating >= 1 && parsedRating <= 5) {
+      filter.rating = parsedRating;
+    }
+  }
+
+  if ((query.minFare !== undefined && query.minFare !== "") || (query.maxFare !== undefined && query.maxFare !== "")) {
+    const fareQuery = {};
+    if (query.minFare !== undefined && query.minFare !== "") {
+      const minFare = toNumber(query.minFare);
+      if (minFare !== null && minFare >= 0) fareQuery.$gte = minFare;
+    }
+    if (query.maxFare !== undefined && query.maxFare !== "") {
+      const maxFare = toNumber(query.maxFare);
+      if (maxFare !== null && maxFare >= 0) fareQuery.$lte = maxFare;
+    }
+    if (Object.keys(fareQuery).length > 0) filter.fare = fareQuery;
+  }
+
+  if ((query.minDistance !== undefined && query.minDistance !== "") || (query.maxDistance !== undefined && query.maxDistance !== "")) {
+    const distanceQuery = {};
+    if (query.minDistance !== undefined && query.minDistance !== "") {
+      const minDistance = toNumber(query.minDistance);
+      if (minDistance !== null && minDistance >= 0) distanceQuery.$gte = minDistance;
+    }
+    if (query.maxDistance !== undefined && query.maxDistance !== "") {
+      const maxDistance = toNumber(query.maxDistance);
+      if (maxDistance !== null && maxDistance >= 0) distanceQuery.$lte = maxDistance;
+    }
+    if (Object.keys(distanceQuery).length > 0) filter.distance = distanceQuery;
+  }
+
+  return filter;
+};
+
+const getSortConfig = (query = {}) => {
+  const sortBy = query.sortBy || "createdAt";
+  const order = query.order || "desc";
+
+  const allowedSortFields = [
+    "customerName",
+    "vehicleType",
+    "distance",
+    "fare",
+    "bookingStatus",
+    "paymentStatus",
+    "rating",
+    "bookingDate",
+    "createdAt"
+  ];
+
+  const sortField = allowedSortFields.includes(sortBy) ? sortBy : "createdAt";
+  const sortOrder = order.toLowerCase() === "asc" ? 1 : -1;
+
+  return { [sortField]: sortOrder };
+};
+
+const getSearchConfig = (query = {}) => {
+  if (!query.search || String(query.search).trim() === "") {
+    return {};
+  }
+
+  const escapeRegex = (string) => string.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+  const escapedSearch = escapeRegex(String(query.search).trim());
+  const searchRegex = { $regex: escapedSearch, $options: "i" };
+
+  return {
+    $or: [
+      { customerName: searchRegex },
+      { vehicleType: searchRegex },
+      { pickupLocation: searchRegex },
+      { dropLocation: searchRegex },
+      { customerPhone: searchRegex },
+      { paymentMethod: searchRegex },
+      { bookingStatus: searchRegex }
+    ]
+  };
+};
 
 /**
  * Create a new vehicle booking.
@@ -87,8 +234,8 @@ const createBooking = async (req, res) => {
       return res.status(400).json({ success: false, message: "Rating must be between 1 and 5" });
     }
 
-    // 4. Trigger the service layer
-    const savedBooking = await BookingService.createBooking({
+    // 4. Create and save document in MongoDB using Mongoose schema
+    const newBooking = new Booking({
       customerName: cleanedCustomerName,
       customerPhone: cleanedCustomerPhone,
       vehicleType: cleanedVehicleType,
@@ -105,6 +252,8 @@ const createBooking = async (req, res) => {
       rideEndTime: parsedRideEndTime,
       isDeleted: false
     });
+
+    const savedBooking = await newBooking.save();
 
     // 5. Return professional API response
     return res.status(201).json({
@@ -143,16 +292,20 @@ const getAllBookings = async (req, res) => {
     const search = getSearchConfig(req.query);
     const sort = getSortConfig(req.query);
 
-    // 3. Delegate to the Service Layer
-    const { totalBookings, bookings } = await BookingService.getAllBookings({
-      filter,
-      search,
-      sort,
-      skip,
-      limit
-    });
+    // 3. Combined query configuration (always including soft delete awareness)
+    const query = { ...filter, ...search, isDeleted: false };
 
-    // 4. Return standard-compliant paginated response
+    // 4. Run queries in parallel for optimal database performance (using .lean() for read-only optimization)
+    const [totalBookings, bookings] = await Promise.all([
+      Booking.countDocuments(query),
+      Booking.find(query)
+        .sort(sort)
+        .skip(skip)
+        .limit(limit)
+        .lean()
+    ]);
+
+    // 5. Return standard-compliant paginated response
     return res.status(200).json({
       success: true,
       message: "Bookings fetched successfully",
@@ -189,8 +342,8 @@ const getBookingById = async (req, res) => {
       });
     }
 
-    // 2. Query DB via Service Layer
-    const booking = await BookingService.getBookingById(id);
+    // 2. Query MongoDB, excluding soft-deleted records (using .lean() for read-only optimization)
+    const booking = await Booking.findOne({ _id: id, isDeleted: false }).lean();
 
     // 3. Return 404 if document does not exist
     if (!booking) {
@@ -240,7 +393,7 @@ const updateBooking = async (req, res) => {
     }
 
     // 3. Soft Delete Awareness: Verify booking exists and is not deleted
-    const existingBooking = await BookingService.getBookingById(id);
+    const existingBooking = await Booking.findOne({ _id: id, isDeleted: false });
     if (!existingBooking) {
       return res.status(404).json({
         success: false,
@@ -301,8 +454,12 @@ const updateBooking = async (req, res) => {
       }
     }
 
-    // 5. Trigger the Service layer
-    const updatedBooking = await BookingService.updateBooking(id, updateData);
+    // 5. Update and return new document using findByIdAndUpdate with Mongoose schema validation enabled
+    const updatedBooking = await Booking.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true, runValidators: true }
+    );
 
     return res.status(200).json({
       success: true,
@@ -362,7 +519,7 @@ const updateBookingStatus = async (req, res) => {
     }
 
     // 4. Soft Delete Awareness: Verify booking exists and is not deleted
-    const existingBooking = await BookingService.getBookingById(id);
+    const existingBooking = await Booking.findOne({ _id: id, isDeleted: false });
     if (!existingBooking) {
       return res.status(404).json({
         success: false,
@@ -370,8 +527,12 @@ const updateBookingStatus = async (req, res) => {
       });
     }
 
-    // 5. Update only status field via Service Layer
-    const updatedBooking = await BookingService.updateBookingStatus(id, sanitizedStatus);
+    // 5. Update only the status field
+    const updatedBooking = await Booking.findByIdAndUpdate(
+      id,
+      { bookingStatus: sanitizedStatus },
+      { new: true, runValidators: true }
+    );
 
     return res.status(200).json({
       success: true,
@@ -410,8 +571,8 @@ const deleteBooking = async (req, res) => {
       });
     }
 
-    // 2. Perform permanent database deletion via Service Layer
-    const deletedBooking = await BookingService.deleteBooking(id);
+    // 2. Perform permanent database deletion
+    const deletedBooking = await Booking.findByIdAndDelete(id);
 
     // 3. Return 404 if booking not found
     if (!deletedBooking) {
@@ -452,10 +613,28 @@ const softDeleteBooking = async (req, res) => {
       });
     }
 
-    // 2. Soft delete using Mongoose model via Service Layer
-    await BookingService.softDeleteBooking(id);
+    // 2. Find booking to check state and existence
+    const booking = await Booking.findById(id);
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found"
+      });
+    }
 
-    // 3. Return success response
+    // 3. Prevent double soft delete (return 409 Conflict)
+    if (booking.isDeleted) {
+      return res.status(409).json({
+        success: false,
+        message: "Booking already deleted"
+      });
+    }
+
+    // 4. Perform soft deletion (set isDeleted = true)
+    booking.isDeleted = true;
+    await booking.save();
+
+    // 5. Return success response
     return res.status(200).json({
       success: true,
       message: "Booking soft deleted successfully"
@@ -463,12 +642,6 @@ const softDeleteBooking = async (req, res) => {
 
   } catch (error) {
     console.error("Error during soft delete:", error);
-    if (error.statusCode) {
-      return res.status(error.statusCode).json({
-        success: false,
-        message: error.message
-      });
-    }
     return res.status(500).json({
       success: false,
       message: "Internal server error during soft deletion"
@@ -495,8 +668,8 @@ const getBookingsByStatus = async (req, res) => {
       });
     }
 
-    // 2. Query Mongoose via Service Layer
-    const bookings = await BookingService.getBookingsByStatus(sanitizedStatus);
+    // 2. Query MongoDB, excluding soft deleted records (using .lean() for read-only optimization)
+    const bookings = await Booking.find({ bookingStatus: sanitizedStatus, isDeleted: false }).lean();
 
     // 3. Return RESTful response
     return res.status(200).json({
@@ -533,8 +706,8 @@ const getBookingsByVehicleType = async (req, res) => {
       });
     }
 
-    // 2. Query Mongoose via Service Layer
-    const bookings = await BookingService.getBookingsByVehicleType(sanitizedVehicle);
+    // 2. Query MongoDB, excluding soft deleted records (using .lean() for read-only optimization)
+    const bookings = await Booking.find({ vehicleType: sanitizedVehicle, isDeleted: false }).lean();
 
     // 3. Return RESTful response
     return res.status(200).json({
@@ -574,8 +747,11 @@ const getBookingsByCustomer = async (req, res) => {
     const escapeRegex = (string) => string.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
     const escapedCustomer = escapeRegex(sanitizedCustomer);
 
-    // Query Mongoose via Service Layer
-    const bookings = await BookingService.getBookingsByCustomer(escapedCustomer);
+    // Query MongoDB with case-insensitive partial match (using .lean() for read-only optimization)
+    const bookings = await Booking.find({
+      customerName: { $regex: escapedCustomer, $options: "i" },
+      isDeleted: false
+    }).lean();
 
     return res.status(200).json({
       success: true,
@@ -611,8 +787,8 @@ const getBookingsByPaymentMethod = async (req, res) => {
       });
     }
 
-    // Query Mongoose via Service Layer
-    const bookings = await BookingService.getBookingsByPaymentMethod(sanitizedMethod);
+    // Query MongoDB, excluding soft deleted records (using .lean() for read-only optimization)
+    const bookings = await Booking.find({ paymentMethod: sanitizedMethod, isDeleted: false }).lean();
 
     return res.status(200).json({
       success: true,
