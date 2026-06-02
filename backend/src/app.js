@@ -6,6 +6,11 @@ const authRoutes = require("./routes/auth.routes");
 const analyticsRoutes = require("./routes/analytics.routes");
 const adminRoutes = require("./routes/admin.routes");
 const healthRoutes = require("./routes/health.routes");
+const customerRoutes = require("./routes/customer.routes");
+const driverRoutes = require("./routes/driver.routes");
+const paymentRoutes = require("./routes/payment.routes");
+const ratingRoutes = require("./routes/rating.routes");
+const vehicleRoutes = require("./routes/vehicle.routes");
 const apiLimiter = require("./middlewares/rateLimiter.middleware");
 const globalErrorHandler = require("./middlewares/error.middleware");
 
@@ -36,6 +41,11 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/analytics", analyticsRoutes);
 app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/health", healthRoutes);
+app.use("/api/v1/customers", customerRoutes);
+app.use("/api/v1/drivers", driverRoutes);
+app.use("/api/v1/payments", paymentRoutes);
+app.use("/api/v1/ratings", ratingRoutes);
+app.use("/api/v1/vehicles", vehicleRoutes);
 
 // 7. Route 404 Router Fallback
 app.use((req, res, next) => {
