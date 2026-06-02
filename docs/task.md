@@ -1,17 +1,15 @@
-# Task: Phase 3 & 4 - Seeder & CRUD System
+# Task: Phase 2 - Database Layer Setup
 
-- [x] Create seeder system in `src/seed/seed.js`
-- [x] Integrate data-cleaning and field-type casting in the seeder script
-- [x] Verify data seeding execution with 18,289 records
-- [x] Create Mongoose models (`Driver`, `Vehicle`, `Payment`, `Rating`)
-- [x] Create decoupled MVC service layer under `/src/services/`
-- [x] Create REST controllers under `/src/controllers/`
-- [x] Create routers under `/src/routes/` and mount them in `src/app.js`
-- [x] Clear duplicate unique indices warnings on models
+- [x] Configure MongoDB configuration handler (`src/config/db.js`)
+- [x] Verify environment variables in database startup scripts
+- [x] Design unique and secure User schema model (`src/models/user.model.js`)
+- [x] Integrate `userId` relationship inside Booking schema (`src/models/booking.model.js`)
+- [x] Add high-performance `userId` index in booking schema
+- [x] Run seed import tool to verify schema database insertion compatibility
 - [x] Run development server and verify clean initialization boot
-- [x] Commit seeder system changes with `feat: implement database seeding system`
-- [x] Commit create APIs with `feat: implement create apis`
-- [x] Commit read APIs with `feat: implement read apis`
-- [x] Commit update APIs with `feat: implement update apis`
-- [x] Commit delete APIs with `feat: implement delete apis`
+- [x] Perform health check probe validation
+- [x] Commit database configuration changes with `feat: configure mongodb connection`
+- [x] Commit schema and validation changes with `feat: create mongoose schemas and validations`
 - [x] Push codebase updates to GitHub remote repository
+- [x] Implement backend-specific `.gitignore` file inside the `backend/` folder
+
