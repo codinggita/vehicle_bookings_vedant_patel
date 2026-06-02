@@ -1,94 +1,56 @@
-# Walkthrough - Phase 0: Dataset Analysis & Database Planning
+# Walkthrough - Phase 1: Folder Architecture Setup
 
-This walkthrough summarizes the database architecture, field normalizations, index optimizations, and dataset import verification for the Vehicle Booking Backend.
+This walkthrough details the successful establishment and modular verification of the folder architecture structure for the Express/Mongoose backend of the Vehicle Booking System.
 
-## What Was Completed
+## Completed Specifications
 
-### 1. Dataset Analysis & Inconsistency Identification
-We analyzed all 18,289 raw booking entries. Key observations resolved:
-- **Dirty string nulls:** `"null"` and empty strings parsed cleanly into standard `null` types.
-- **Types:** Converted numeric fields (`Booking_Value`, `Ride_Distance`, `V_TAT`, `C_TAT`, `Driver_Ratings`, `Customer_Rating`) from strings into correct floats/integers.
-- **Date formats:** Formatted `"YYYY-MM-DD HH:mm:ss"` values into standard, queryable UTC ISO dates.
-- **Rating Ranges:** Ratings verified to lie strictly within [3.0, 5.0] when not null.
+### 1. Expanded MVC Structural Architecture
+We successfully designed and verified the expanded folder layout under `/src`:
+- **`config/`**: Setup for MongoDB client connection.
+- **`controllers/`**: Extracts parameters and formats HTTP responses.
+- **`services/`**: Holds logic, database operations, and Mongoose query executions.
+- **`routes/`**: Handles endpoint path definitions.
+- **`middlewares/`**: Manages authorization filters and error exception captures.
+- **`models/`**: Manages database document mapping schemas.
+- **`validators/`**: Rigorously validates incoming requests (contains baseline tracker `.gitkeep`).
+- **`utils/`**: Shared core scripts (pagination, filter builders).
+- **`constants/`**: Prevents system-wide string duplication (holds user roles, booking states in `src/constants/index.js`).
+- **`docs/`**: API design reference sheets and Postman collections (holds `src/docs/architecture_notes.md`).
 
-### 2. Scalable Entity & Relationship Design
-Designed a multi-collection structure separating entities for decoupling and transactional scalability:
-- **`users`:** Holds user profiles, credentials, active state, and roles (`user` vs `admin`).
-- **`bookings`:** Stores booking transactional records referencing `userId` and embedding payments, cancellations, and locations.
-- **`vehicles`:** Decoupled representation of classifications (e.g. eBike, Prime Sedan, SUV) to support future hardware metadata.
-
-### 3. MongoDB Optimization & Index Planning
-Formulated single-field and compound indexes to accelerate both individual client feeds and admin aggregation pipelines:
-- `{ email: 1 }` (Unique) - Fast user auth checks.
-- `{ bookingDate: -1 }` - Sorting feeds.
-- `{ bookingStatus: 1, bookingDate: -1 }` - Filters and analytics.
-- `{ vehicleType: 1, bookingDate: -1 }` - Trend pipelines.
-
-### 4. Verification of Seeding Execution
-- Successfully connected to the MongoDB Atlas cluster configured in `.env`.
-- Cleared pre-existing data and ran the seeding script.
-- Cleanly imported all 18,289 records using the validation and mapping schemas defined.
+### 2. Implementation of System Enums (`src/constants/index.js`)
+We introduced a centralized, immutable catalog of definitions to keep model validations and business queries clean:
+- `USER_ROLES`: Maps authorization scopes (`"user"`, `"admin"`).
+- `BOOKING_STATUS`: Maps booking lifecycle states (`"pending"`, `"confirmed"`, `"completed"`, `"cancelled"`).
+- `PAYMENT_METHOD`: Defines accepted payments (`"cash"`, `"card"`, `"upi"`, `"net_banking"`).
+- `PAYMENT_STATUS`: Maps transaction states (`"pending"`, `"paid"`, `"failed"`, `"refunded"`).
+- `VEHICLE_TYPE`: Structures vehicle classes (`"sedan"`, `"suv"`, `"hatchback"`, `"luxury"`, `"mini"`, `"plus"`, `"bike"`, `"ebike"`, `"auto"`).
 
 ---
 
-## Technical Specifications & Mapping
+## Verification Testing Results
 
-### Collection Structures
-
-#### 1. `users` Collection Schema
-```javascript
-const userSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, unique: true, lowercase: true, required: true },
-  password: { type: String, required: true, select: false },
-  role: { type: String, enum: ["user", "admin"], default: "user" },
-  isActive: { type: Boolean, default: true }
-}, { timestamps: true });
-```
-
-#### 2. `bookings` Collection Schema
-```javascript
-const bookingSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  bookingId: { type: String, unique: true },
-  vehicleType: { type: String, required: true },
-  pickupLocation: { type: String, required: true },
-  dropLocation: { type: String, required: true },
-  distance: { type: Number, required: true },
-  fare: { type: Number, required: true },
-  bookingStatus: { type: String, required: true },
-  bookingDate: { type: Date, required: true },
-  vTat: { type: Number, default: null },
-  cTat: { type: Number, default: null },
-  driverRating: { type: Number, default: null },
-  customerRating: { type: Number, default: null },
-  payment: {
-    method: { type: String, default: "cash" },
-    status: { type: String, default: "pending" }
-  },
-  cancellation: {
-    reason: { type: String, default: null }
-  }
-}, { timestamps: true });
-```
-
----
-
-## Verification Results
-
-### Seeding Execution Output
+### 1. Directory Structure Integrity Check
+Tested via standard `git status` which registers the newly introduced folders:
 ```bash
-> backend@1.0.0 seed
-> node src/seed/importBookings.js
-
-◇ injected env (4) from .env
-MongoDB Connected: ac-rkmt9ta-shard-00-01.mkuo8ry.mongodb.net
-Database connected successfully
-Loaded raw dataset with 18289 records
-Cleaning dataset...
-Clearing existing bookings from database...
-Importing bookings...
-Bookings inserted successfully! Total records: 18289
-Database connection closed gracefully
+Untracked files:
+	backend/src/constants/
+	backend/src/docs/
+	backend/src/validators/
 ```
-All records have been parsed, validated, and normalized successfully without any schema validation or connection errors.
+All folders correctly contain their tracking or configuration assets.
+
+### 2. Runtime Bootstrap & Integration Checks
+Verified by running `npm run dev` to ensure that adding new directories or modular constants imports did not compromise Express initialization:
+```bash
+Server running on port 5000
+MongoDB Connected: ac-rkmt9ta-shard-00-02.mkuo8ry.mongodb.net
+```
+No initialization warnings or structural exceptions occurred.
+
+### 3. API Health Response
+Tested using curl probe:
+```bash
+$ curl -s http://localhost:5000/api/v1/health
+{"success":true,"message":"Server is running","timestamp":"2026-06-02T06:05:22.803Z","environment":"development"}
+```
+Confirmed `200 OK` response.

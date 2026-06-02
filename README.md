@@ -122,11 +122,29 @@ All requests are prefixed with `/api/v1`.
 
 ## 🔒 Security & Optimization Blueprint
 
-1. **MongoDB Indexing**: Indexes compile queries in $O(1)$ B-Tree scans. Fields with dedicated indexing:
-   - `User.email`
+1. **MongoDB Indexing**: Indexes compile queries in B-Tree scans. Fields with dedicated indexing:
+   - `User.email` (Unique index created implicitly by schema definition)
    - `Booking.bookingStatus`
    - `Booking.vehicleType`
    - `Booking.bookingDate`
    - `Booking.paymentMethod`
+   - `{ bookingStatus: 1, bookingDate: -1 }` (Compound index for status date filtering)
+   - `{ vehicleType: 1, bookingDate: -1 }` (Compound index for vehicle analytics)
 2. **Memory Throttling via Lean**: Append `.lean()` to Mongoose read-only operations to retrieve plain POJOs directly, reducing CPU overhead.
 3. **ReDoS Vulnerability Protection**: Search and parameter matches sanitize inputs by escaping regular expression characters.
+
+---
+
+## 📊 Dataset Seeding & Verification Summary
+
+The baseline raw dataset has been fully imported, cleaned, and verified:
+- **Total Imported Records**: 18,289
+- **Database Status Metrics**:
+  - **Success / Completed**: 11,340 (62.0%)
+  - **Canceled by Driver**: 3,280 (17.9%)
+  - **Canceled by Customer**: 1,862 (10.2%)
+  - **Driver Not Found**: 1,807 (9.9%)
+- **Data Normalization Applied**:
+  - String `"null"` and empty parameters parsed to Mongoose native `null`.
+  - Date and time strings merged and parsed to ISO-8601 UTC `Date` objects.
+  - Money fares, distances, and rating parameters cast from strings to numeric fields.
