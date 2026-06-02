@@ -1,150 +1,293 @@
-# Vehicle Booking Backend System 🚀
+# 🚖 VehicleBooking 
 
-A production-grade, highly scalable, and secure RESTful backend API system for a Vehicle Booking application built with Node.js, Express, and MongoDB.
+### Manage Bookings. Optimize Analytics. Streamline Workforce Operations.
 
-## 📌 Features Overview
-
-- **Modular Backend Architecture**: Standard-compliant controller-route concern separation.
-- **Dynamic Query Builders**: Advanced search (regex protected), enums filtering, sorting validation, and soft-delete protections.
-- **JWT & RBAC Security Layer**: Bearer JWT token authentication coupled with rigid Role-Based Access Control guards.
-- **High-Performance Aggregations**: Centralized database calculations using MongoDB Aggregation pipelines.
-- **Enterprise Middleware**: Throttling rate limiters, security CORS mappings, Morgan observabilities, and global async wrappers/error formatters.
-- **Database Optimizations**: High-speed B-Tree indexes and read-only query memory `.lean()` execution plans.
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
+![Express.js](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
+![Mongoose](https://img.shields.io/badge/Mongoose-880000?style=for-the-badge&logo=mongoose&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-black?style=for-the-badge&logo=JSON%20web%20tokens&logoColor=F637EC)
 
 ---
 
-## 🛠️ Technology Stack
+# 🚀 Production-Grade Vehicle Booking Backend System
 
-- **Core Engine**: Node.js, Express.js (v5)
-- **Database**: MongoDB & Mongoose
-- **Security**: jsonwebtoken, bcryptjs, express-rate-limit, cors
-- **Telemetry**: morgan, dotenv
+VehicleSphere is a modern, high-performance **Vehicle Booking Backend API System** built using **Node.js, Express.js, and MongoDB** to simplify vehicle booking operations, user authentication, statistics calculations, and administrator workforce dashboards.
+
+This platform replaces manual tracking spreadsheets with a highly secure, optimized, and scalable backend solution.
 
 ---
 
-## ⚙️ Environment Variables Configuration
+# 🔗 Important Links
 
-Create a `.env` file in the `backend/` directory using the template below:
+| Resource | Link |
+|----------|------|
+| 🌐 Live API Deployment | Coming Soon |
+| 📄 Swagger/Postman Documentation | [walkthrough.md](file:///d:/Vehicle_Bookings/docs/walkthrough.md) |
+| 🔀 GitHub Repository | [GitHub Repo](https://github.com/vedantxy/vehicle_bookings_vedant_patel) |
+| 📊 System Design Blueprint | [architecture_notes.md](file:///d:/Vehicle_Bookings/backend/src/docs/architecture_notes.md) |
+| 📄 Implementation Plans | [implementation_plan.md](file:///d:/Vehicle_Bookings/docs/implementation_plan.md) |
+
+---
+
+# 📖 Problem Statement
+
+Many transport agencies and logistics providers manage vehicle bookings manually using fragmented tools. This creates:
+
+- Vehicle data management issues
+- Difficult booking history tracking
+- Inconsistent data types and dirty parameters in raw entries
+- Lack of centralized, real-time dashboards
+- Slow analytical reporting on top vehicle categories and cancellation rates
+- Unsecured endpoints without appropriate authorization limits
+
+---
+
+# 💡 Solution
+
+VehicleSphere provides a centralized, standard-compliant RESTful database backbone where transport agencies can:
+
+- Manage vehicle bookings seamlessly
+- Run fast filters across fare, distance, status, and rating values
+- Verify real-time statistics utilizing optimized aggregation queries
+- Leverage role-based auth controls to safeguard write accesses
+- Access standardized and sanitized historical records of 18,289 rides
+
+---
+
+# ✨ Key Features
+
+## 🔐 Authentication & RBAC
+
+- Secure User Registration & Logins
+- Salted Hashing via bcryptjs
+- JWT Token Authentication
+- Role-Based Access Controls (RBAC: `user` / `admin` scopes)
+
+## 🚖 Booking Management
+
+- Add / Create Bookings
+- Edit / Full Updates
+- Soft-Delete protections using logical status parameters (`isDeleted: true`)
+- Advanced Dynamic Filtering (status, vehicle type, rating, fare, distance ranges)
+- ESCAPE-protected search preventing ReDoS exploits
+
+## 📊 Analytics Engine
+
+- Centralized Statistics grouped by ride states
+- Ride success rate percentage calculations
+- Popular vehicle categories sorted descending
+- Top-10 highest-paying trips
+- Chronological monthly ride trend insights
+
+## ⚙️ Core System Features
+
+- Dynamic Pagination (`limit`, `page`, `skip` boundaries)
+- Standardized Sorting on designated whitelists
+- Modular MVC Separation of concerns (Controllers, Services, Models)
+- Global Central Exception Handling middleware
+- High-Speed MongoDB indices (B-Trees)
+- Environment-based settings configuration
+
+---
+
+# 💻 Tech Stack
+
+## Backend Core
+- **Node.js** - High-speed runtime environment
+- **Express.js (v5)** - Light, robust framework
+- **MongoDB** - Document datastore
+- **Mongoose** - Object Data Modeling (ODM) library
+
+## Security & Telemetry
+- **JSON Web Tokens (JWT)** - Token authentication
+- **bcryptjs** - Salted password hashing
+- **express-rate-limit** - API throttling (DDoS defense)
+- **morgan & dotenv** - Observation telemetry and environmental variables
+
+---
+
+# 📂 Folder Structure
+
+```bash
+vehicle-bookings/
+│── README.md
+│── docs/
+│   ├── implementation_plan.md    # Architectural design blueprints
+│   ├── task.md                   # Task checklist trackers
+│   └── walkthrough.md            # Completed walkthrough logs
+│
+├── backend/
+│   ├── data/
+│   │   ├── bookings.json         # Raw booking dataset (18,289 entries)
+│   │   └── bookings_sample_preview.json
+│   │
+│   ├── src/
+│   │   ├── config/               # Database client setups
+│   │   ├── constants/            # Global enums, scopes, and definitions
+│   │   ├── controllers/          # Standard request handlers
+│   │   ├── docs/                 # Data flow sheets and architectural notes
+│   │   ├── middlewares/          # JWT auth, role validation, error catches
+│   │   ├── models/               # Mongoose schema setups (User, Booking)
+│   │   ├── routes/               # API endpoint routes mapping
+│   │   ├── seed/                 # Database parsing seed processors
+│   │   ├── services/             # Decoupled business logic triggers
+│   │   ├── utils/                # Pagination, builders, and token helpers
+│   │   └── validators/           # Request schema validations
+│   │
+│   ├── .env                      # Environment config (ignored in git)
+│   ├── .env.example              # Environment template config
+│   └── package.json              # Project manifest parameters
+```
+
+---
+
+# ⚙️ Installation & Setup
+
+## Clone Repository
+
+```bash
+git clone https://github.com/vedantxy/vehicle_bookings_vedant_patel.git
+```
+
+## Configure Environment Parameters
+
+Create a `.env` file inside the `backend/` folder:
 
 ```env
 PORT=5000
 NODE_ENV=development
-MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/vehicle_bookings
-JWT_SECRET=supersecretcryptographickey
+MONGO_URI=your_mongodb_atlas_connection_string
+JWT_SECRET=your_jwt_secret_signing_key
 JWT_EXPIRES_IN=7d
-CLIENT_URL=http://localhost:3000
+```
+
+## Install Dependencies
+
+```bash
+cd backend
+npm install
+```
+
+## Parse & Seed Data (18,289 Records)
+
+```bash
+npm run seed
+```
+
+## Launch Development Server
+
+```bash
+npm run dev
 ```
 
 ---
 
-## 📦 Installation & Getting Started
+# 🌐 API Base URL
 
-1. **Clone the repository**:
-   ```bash
-   git clone <repository_url>
-   cd Vehicle_Bookings/backend
-   ```
-2. **Install all dependencies**:
-   ```bash
-   npm install
-   ```
-3. **Seed Database (Optional)**:
-   ```bash
-   npm run seed
-   ```
-4. **Launch Development Server**:
-   ```bash
-   npm run dev
-   ```
-5. **Launch Production Stack**:
-   ```bash
-   npm start
-   ```
-
----
-
-## 📁 System Folder Structure
-
-```text
-src/
-├── config/       # Database connection configs
-├── controllers/  # Route controller handlers
-├── middlewares/  # Express middlewares (auth, role, rate limiter, error)
-├── models/       # Mongoose Schemas & Models
-├── routes/       # Express route definitions
-├── seed/         # Data seeding scripts
-├── utils/        # Sanitizers, builders, and token generators
-├── app.js        # Express app initialization
-└── server.js     # Entry port listener
+```bash
+http://localhost:5000/api/v1
 ```
 
 ---
 
-## 📋 REST API Documentation Catalog
+# 📡 Main API Routes
 
-All requests are prefixed with `/api/v1`.
+## 🔐 Authentication Routes
 
-### 🛡️ Authentication APIs
-- `POST /auth/register` - Registers a new user.
-- `POST /auth/login` - Authenticates user and returns JWT token.
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /auth/register | Register a new user |
+| POST | /auth/login | Authenticate user & get JWT token |
 
-### 🚗 Booking APIs (Protected: JWT Bearer Token Required)
-- `GET /bookings` - Get all bookings (with dynamic pagination, filtering, search, and sorting).
-- `POST /bookings` - Create a booking.
-- `GET /bookings/:id` - Get a single booking.
-- `PUT /bookings/:id` - Update a booking.
-- `DELETE /bookings/:id` - Hard delete a booking.
-- `PATCH /bookings/:id/status` - Update booking status.
-- `PATCH /bookings/:id/soft-delete` - Soft delete a booking.
-- `GET /bookings/status/:status` - Get bookings by status.
-- `GET /bookings/vehicle/:vehicleType` - Get bookings by vehicle type.
-- `GET /bookings/customer/:customerName` - Get bookings by customer name.
-- `GET /bookings/payment/:paymentMethod` - Get bookings by payment method.
+## 🚖 Booking Routes (Protected)
 
-### 📊 Analytics APIs
-- `GET /analytics/booking-stats` - Total stats compiled by status.
-- `GET /analytics/success-rate` - Platform completion success rate percentage.
-- `GET /analytics/top-vehicles` - Most booked vehicle types sorted descending.
-- `GET /analytics/highest-fare` - List of top 10 highest-fare rides.
-- `GET /analytics/monthly-rides` - Monthly ride trends sorted chronologically.
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /bookings | Get all bookings (paginated, filtered, sorted, searched) |
+| POST | /bookings | Create a new booking request |
+| GET | /bookings/:id | Retrieve booking details by ID |
+| PUT | /bookings/:id | Replace/Update booking details |
+| PATCH | /bookings/:id/status | Update a booking's status |
+| PATCH | /bookings/:id/soft-delete | Soft delete a booking |
+| GET | /bookings/status/:status | Filter bookings by status enums |
+| GET | /bookings/vehicle/:vehicleType | Filter bookings by vehicle category |
+| GET | /bookings/customer/:customerName | Search bookings by customer name (partial case-insensitive) |
+| GET | /bookings/payment/:paymentMethod | Filter bookings by payment method enums |
 
-### 👑 Admin APIs (Protected: JWT & Administrator Role Guard Required)
-- `GET /admin/dashboard` - Global platform counters (bookings, users, actives).
-- `GET /admin/users` - Fetch all system users.
-- `GET /admin/users/:id` - Get detail of a specific user.
-- `PATCH /admin/users/:id/role` - Update user authorization role (`user` / `admin`).
-- `PATCH /admin/users/:id/status` - Toggles user account activity status.
+## 📊 Analytics Routes
 
-### 🩺 Health Monitoring
-- `GET /health` - Returns server status, timestamp, and environment.
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /analytics/booking-stats | Retrieve aggregate booking stats grouped by status |
+| GET | /analytics/success-rate | Calculate completion success rate percentage |
+| GET | /analytics/top-vehicles | Popular vehicle categories sorted descending |
+| GET | /analytics/highest-fare | Top 10 highest-paying trips |
+| GET | /analytics/monthly-rides | Chronological monthly booking trends |
 
----
+## 👑 Admin Routes (Protected: Admin Only)
 
-## 🔒 Security & Optimization Blueprint
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /admin/dashboard | Access overall platform counters (bookings, users, actives) |
+| GET | /admin/users | Fetch all system users |
+| GET | /admin/users/:id | Fetch specific user profile details |
+| PATCH | /admin/users/:id/role | Update user role (`user` / `admin`) |
+| PATCH | /admin/users/:id/status | Toggle user active status |
 
-1. **MongoDB Indexing**: Indexes compile queries in B-Tree scans. Fields with dedicated indexing:
-   - `User.email` (Unique index created implicitly by schema definition)
-   - `Booking.bookingStatus`
-   - `Booking.vehicleType`
-   - `Booking.bookingDate`
-   - `Booking.paymentMethod`
-   - `{ bookingStatus: 1, bookingDate: -1 }` (Compound index for status date filtering)
-   - `{ vehicleType: 1, bookingDate: -1 }` (Compound index for vehicle analytics)
-2. **Memory Throttling via Lean**: Append `.lean()` to Mongoose read-only operations to retrieve plain POJOs directly, reducing CPU overhead.
-3. **ReDoS Vulnerability Protection**: Search and parameter matches sanitize inputs by escaping regular expression characters.
+## 🩺 Health Check Route
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /health | Returns API status, timestamp, and environment |
 
 ---
 
-## 📊 Dataset Seeding & Verification Summary
+# 📸 Project Screenshots
 
-The baseline raw dataset has been fully imported, cleaned, and verified:
-- **Total Imported Records**: 18,289
-- **Database Status Metrics**:
-  - **Success / Completed**: 11,340 (62.0%)
-  - **Canceled by Driver**: 3,280 (17.9%)
-  - **Canceled by Customer**: 1,862 (10.2%)
-  - **Driver Not Found**: 1,807 (9.9%)
-- **Data Normalization Applied**:
-  - String `"null"` and empty parameters parsed to Mongoose native `null`.
-  - Date and time strings merged and parsed to ISO-8601 UTC `Date` objects.
-  - Money fares, distances, and rating parameters cast from strings to numeric fields.
+### 📊 Backend Seeding Verification
+
+![Seeding Verification](https://via.placeholder.com/1200x700.png?text=Database+Seeding+Import+18,289+Records)
+
+### 🩺 Health Probe Check
+
+![Health Status Response](https://via.placeholder.com/1200x700.png?text=Health+Status+Endpoint+Response)
+
+---
+
+# 📊 Future Improvements
+
+- Driver Matching Algorithm Optimization
+- Real-time Location Updates via WebSockets
+- Automated Fare Matrix Adjustment Engine
+- Payment Gateway Integrations (Stripe, Razorpay)
+- Multi-factor User Authorization Options (2FA)
+- PDF/Excel Booking Report Exports
+
+---
+
+# 📄 Documentation Notes
+
+- APIs verified using Postman Collections
+- Standard MVC Separation of concerns followed strictly
+- RESTful HTTP Status guidelines implemented
+- B-Tree Index optimizations configured for email, statuses, types, and user references
+- Normalized data types parsing 18,289 raw dataset anomalies cleanly
+
+---
+
+# 👨💻 Author
+
+## Vedant Patel
+
+Backend Engineer | Scalable System Architect
+
+Passionate about designing modular backend architectures, highly performant MongoDB query aggregations, clean APIs, and secure access systems.
+
+---
+
+# 🙌 Thank You
+
+Thank you for visiting this project repository.
+
+If you found this project helpful, please consider giving it a ⭐ on GitHub.

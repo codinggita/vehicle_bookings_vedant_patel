@@ -1,2 +1,0 @@
-# Keeps this folder tracked in Git.
-# Inside this folder, write schemas and validation rules (e.g. using Joi, Zod, or custom validation helpers) for validating requests.

@@ -1,4 +1,4 @@
-# Task: Phase 2 - Database Layer Setup
+# Task: Phase 2 - Database Layer Setup & Cleanups
 
 - [x] Configure MongoDB configuration handler (`src/config/db.js`)
 - [x] Verify environment variables in database startup scripts
@@ -10,4 +10,10 @@
 - [x] Perform health check probe validation
 - [x] Commit database configuration changes with `feat: configure mongodb connection`
 - [x] Commit schema and validation changes with `feat: create mongoose schemas and validations`
+- [x] Delete the root `.gitignore` file outside the backend folder
+- [x] Restore `backend/.gitignore` to ignore sensitive node_modules and env files
+- [x] Stage and commit the root gitignore deletion
+- [x] Delete Postman JSON collection files from root workspace
+- [x] Delete the newly created folders (constants, docs, validators) inside backend/src/
+- [x] Stage and commit the deletion of newly created MVC folders
 - [x] Push codebase updates to GitHub remote repository
