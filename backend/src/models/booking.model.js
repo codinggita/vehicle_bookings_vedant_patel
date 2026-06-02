@@ -2,6 +2,11 @@ const mongoose = require("mongoose");
 
 const bookingSchema = new mongoose.Schema(
   {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
     customerName: {
       type: String,
       required: [true, "Customer name is required"],
@@ -99,6 +104,7 @@ const bookingSchema = new mongoose.Schema(
 );
 
 // Indexes for query performance optimization
+bookingSchema.index({ userId: 1 });
 bookingSchema.index({ bookingStatus: 1 });
 bookingSchema.index({ vehicleType: 1 });
 bookingSchema.index({ bookingDate: -1 });
