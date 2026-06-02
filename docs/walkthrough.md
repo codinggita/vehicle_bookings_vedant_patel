@@ -1,6 +1,6 @@
-# Walkthrough - Phase 2: Database Setup & Gitignore Cleanup
+# Walkthrough - Phase 2: Database Setup & Cleanup
 
-This walkthrough details the database configurations, schemas, index strategies, relationship definitions, soft delete strategies, and gitignore file cleanups completed.
+This walkthrough details the database configurations, schemas, index strategies, relationship definitions, soft delete strategies, and cleanup operations completed.
 
 ## Completed Specifications
 
@@ -17,6 +17,9 @@ This walkthrough details the database configurations, schemas, index strategies,
 - Removed the redundant `.gitignore` file from the workspace root directory (outside the backend folder).
 - Ensured `backend/.gitignore` is fully active and restored to safely protect production dependencies (`node_modules/`) and sensitive configurations (`.env`) from public source control exposure.
 
+### 4. Postman Collections Deletion
+- Deleted the two Postman JSON collection files (`Vehicle-Booking-System.postman_collection.json` and `Vehicle_Bookings_API.postman_collection.json`) located in the root workspace directory.
+
 ---
 
 ## Verification Testing Results
@@ -32,9 +35,10 @@ Bookings inserted successfully! Total records: 18289
 ```
 
 ### 2. Git Status and Tracked Entries
-Run `git status` to ensure root `.gitignore` is correctly deleted while maintaining security-sensitive ignores:
+Run `git status` to ensure Postman collection files and root `.gitignore` are deleted:
 ```bash
-Changes not staged for commit:
-	deleted:    .gitignore
+Changes to be committed:
+	deleted:    Vehicle-Booking-System.postman_collection.json
+	deleted:    Vehicle_Bookings_API.postman_collection.json
 ```
 No untracked `.env` or `node_modules` are staged for commit.

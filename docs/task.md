@@ -13,4 +13,6 @@
 - [x] Delete the root `.gitignore` file outside the backend folder
 - [x] Restore `backend/.gitignore` to ignore sensitive node_modules and env files
 - [x] Stage and commit the root gitignore deletion
+- [x] Delete Postman JSON collection files from root workspace
+- [x] Stage and commit the deletion of Postman collection files
 - [x] Push codebase updates to GitHub remote repository
