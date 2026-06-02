@@ -1,64 +1,56 @@
-# Walkthrough - Phase 1: Backend Initialization
+# Walkthrough - Phase 1: Folder Architecture Setup
 
-This walkthrough documents the verified baseline initialization and folder architectural structure of the Express/Mongoose backend for the Vehicle Booking System.
+This walkthrough details the successful establishment and modular verification of the folder architecture structure for the Express/Mongoose backend of the Vehicle Booking System.
 
 ## Completed Specifications
 
-### 1. MVC Directory Structural Architecture
-The project is organized into a modular, decoupled hierarchy of files:
-- **`src/config/`**: Third-party service configurations (e.g. `db.js` for MongoDB Atlas client setup).
-- **`src/controllers/`**: Standard MVC Request-Response controllers.
-- **`src/middlewares/`**: Custom HTTP request middleware pipelines (authorization filters, role authorization, rate limiter, custom JSON errors).
-- **`src/models/`**: Mongoose document mapping schemas (`user.model.js` and `booking.model.js`).
-- **`src/routes/`**: Express Router mappings (`auth.routes.js`, `booking.routes.js`, `analytics.routes.js`, `admin.routes.js`, `health.routes.js`).
-- **`src/services/`**: Decoupled service layer.
-- **`src/utils/`**: Shared core scripts (pagination helper, filtering logic, sorting tools, asynchronous route catch-wrappers).
-- **`src/seed/`**: Datastore seed processors.
+### 1. Expanded MVC Structural Architecture
+We successfully designed and verified the expanded folder layout under `/src`:
+- **`config/`**: Setup for MongoDB client connection.
+- **`controllers/`**: Extracts parameters and formats HTTP responses.
+- **`services/`**: Holds logic, database operations, and Mongoose query executions.
+- **`routes/`**: Handles endpoint path definitions.
+- **`middlewares/`**: Manages authorization filters and error exception captures.
+- **`models/`**: Manages database document mapping schemas.
+- **`validators/`**: Rigorously validates incoming requests (contains baseline tracker `.gitkeep`).
+- **`utils/`**: Shared core scripts (pagination, filter builders).
+- **`constants/`**: Prevents system-wide string duplication (holds user roles, booking states in `src/constants/index.js`).
+- **`docs/`**: API design reference sheets and Postman collections (holds `src/docs/architecture_notes.md`).
 
-### 2. Express Server Architecture (`src/app.js`)
-Handles:
-- Body parser filters (`express.json()`, `express.urlencoded({ extended: true })`).
-- Security rules (`cors` integration, CORS domain configuration per-environment).
-- Application logging (`morgan("dev")` format).
-- API Rate Limiter (`express-rate-limit` setup protecting server from resource exhaustion).
-- Route mounts for all core system services (/api/v1/auth, /api/v1/bookings, /api/v1/analytics, /api/v1/admin, /api/v1/health).
-- Global Exception Handler middleware (`middlewares/error.middleware.js`) catching CastErrors, ValidationErrors, and Mongoose Index violations.
-
-### 3. Database Bootstrap Bootloader (`src/server.js`)
-Configured to load standard environment variables immediately at process start using `dotenv.config()`, initialize connection to MongoDB Atlas, and construct the server HTTP listener on the configured port.
-
-### 4. Configuration Manifest (`.env`)
-Maintains runtime context for:
-- `PORT`: Server port listener (default: `5000`).
-- `MONGO_URI`: Remote MongoDB cluster URI string.
-- `JWT_SECRET`: Standard secret key.
-- `NODE_ENV`: Runtime execution flag.
+### 2. Implementation of System Enums (`src/constants/index.js`)
+We introduced a centralized, immutable catalog of definitions to keep model validations and business queries clean:
+- `USER_ROLES`: Maps authorization scopes (`"user"`, `"admin"`).
+- `BOOKING_STATUS`: Maps booking lifecycle states (`"pending"`, `"confirmed"`, `"completed"`, `"cancelled"`).
+- `PAYMENT_METHOD`: Defines accepted payments (`"cash"`, `"card"`, `"upi"`, `"net_banking"`).
+- `PAYMENT_STATUS`: Maps transaction states (`"pending"`, `"paid"`, `"failed"`, `"refunded"`).
+- `VEHICLE_TYPE`: Structures vehicle classes (`"sedan"`, `"suv"`, `"hatchback"`, `"luxury"`, `"mini"`, `"plus"`, `"bike"`, `"ebike"`, `"auto"`).
 
 ---
 
 ## Verification Testing Results
 
-### 1. Server Launch and Database Hook Validation
-Tested via execution of the Node development script (`npm run dev`):
+### 1. Directory Structure Integrity Check
+Tested via standard `git status` which registers the newly introduced folders:
 ```bash
-> backend@1.0.0 dev
-> nodemon src/server.js
-
-[nodemon] 3.1.14
-[nodemon] to restart at any time, enter `rs`
-[nodemon] watching path(s): *.*
-[nodemon] watching extensions: js,mjs,cjs,json
-[nodemon] starting `node src/server.js`
-
-Server running on port 5000
-MongoDB Connected: ac-rkmt9ta-shard-00-00.mkuo8ry.mongodb.net
+Untracked files:
+	backend/src/constants/
+	backend/src/docs/
+	backend/src/validators/
 ```
-No initialization exceptions or connectivity issues were encountered.
+All folders correctly contain their tracking or configuration assets.
 
-### 2. Health Endpoint Probe Response
-Verified via curl request:
+### 2. Runtime Bootstrap & Integration Checks
+Verified by running `npm run dev` to ensure that adding new directories or modular constants imports did not compromise Express initialization:
+```bash
+Server running on port 5000
+MongoDB Connected: ac-rkmt9ta-shard-00-02.mkuo8ry.mongodb.net
+```
+No initialization warnings or structural exceptions occurred.
+
+### 3. API Health Response
+Tested using curl probe:
 ```bash
 $ curl -s http://localhost:5000/api/v1/health
-{"success":true,"message":"Server is running","timestamp":"2026-06-02T06:00:16.895Z","environment":"development"}
+{"success":true,"message":"Server is running","timestamp":"2026-06-02T06:05:22.803Z","environment":"development"}
 ```
-Returns 200 OK with success flag and verified development environment identifier.
+Confirmed `200 OK` response.

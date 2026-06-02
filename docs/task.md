@@ -1,13 +1,12 @@
-# Task: Phase 1 - Backend Initialization
+# Task: Phase 1 - Folder Architecture Setup
 
-- [x] Initialize Node.js environment (`npm init -y`)
-- [x] Install production dependencies (`express`, `mongoose`, `dotenv`, `cors`, `morgan`, `bcryptjs`, `jsonwebtoken`, `express-rate-limit`)
-- [x] Install dev dependencies (`nodemon`)
-- [x] Configure MVC directory architecture (`config`, `controllers`, `middlewares`, `models`, `routes`, `services`, `utils`, `seed`)
-- [x] Implement standard Express application middleware baseline (`src/app.js`)
-- [x] Implement database and listener bootstrap logic (`src/server.js`)
-- [x] Configure runtime environment properties (`.env`)
-- [x] Run development server and verify successful boot
-- [x] Perform basic health check validation
-- [x] Stage and commit changes with the message `chore: initialize backend project structure`
+- [x] Design scalable MVC backend directory model
+- [x] Verify existing baseline MVC folders (`config`, `controllers`, `services`, `routes`, `middlewares`, `models`, `utils`)
+- [x] Create the new core directories (`validators`, `constants`, `docs`) inside `/src`
+- [x] Create `src/constants/index.js` holding application-wide enums and user roles
+- [x] Create tracking `.gitkeep` placeholder inside `/src/validators`
+- [x] Create `src/docs/architecture_notes.md` detailing system data flow diagrams
+- [x] Run development server and verify clean initialization boot
+- [x] Perform health check probe validation
+- [x] Stage and commit changes with the message `chore: implement scalable mvc architecture`
 - [x] Push codebase updates to GitHub remote repository
