@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
-const User = require("../models/user.model");
-const Booking = require("../models/booking.model");
+const AdminService = require("../services/admin.service");
 const asyncHandler = require("../utils/asyncHandler");
 const { sanitizeString } = require("../utils/dataCleaner");
 
@@ -9,30 +8,12 @@ const { sanitizeString } = require("../utils/dataCleaner");
  * GET /api/v1/admin/dashboard
  */
 const getDashboardStats = asyncHandler(async (req, res) => {
-  // Execute database count operations in parallel for high query performance
-  const [
-    totalUsers,
-    activeUsers,
-    totalBookings,
-    completedBookings,
-    cancelledBookings
-  ] = await Promise.all([
-    User.countDocuments(),
-    User.countDocuments({ isActive: true }),
-    Booking.countDocuments({ isDeleted: false }),
-    Booking.countDocuments({ bookingStatus: "completed", isDeleted: false }),
-    Booking.countDocuments({ bookingStatus: "cancelled", isDeleted: false })
-  ]);
+  // Delegate database calls to the Service Layer
+  const stats = await AdminService.getDashboardStats();
 
   return res.status(200).json({
     success: true,
-    data: {
-      totalUsers,
-      activeUsers,
-      totalBookings,
-      completedBookings,
-      cancelledBookings
-    }
+    data: stats
   });
 });
 
@@ -41,7 +22,8 @@ const getDashboardStats = asyncHandler(async (req, res) => {
  * GET /api/v1/admin/users
  */
 const getAllUsers = asyncHandler(async (req, res) => {
-  const users = await User.find().lean();
+  // Query via Service Layer
+  const users = await AdminService.getAllUsers();
 
   return res.status(200).json({
     success: true,
@@ -65,7 +47,8 @@ const getSingleUser = asyncHandler(async (req, res) => {
     });
   }
 
-  const user = await User.findById(id).lean();
+  // Query via Service Layer
+  const user = await AdminService.getSingleUser(id);
 
   if (!user) {
     return res.status(404).json({
@@ -115,12 +98,8 @@ const updateUserRole = asyncHandler(async (req, res) => {
     });
   }
 
-  // 4. Update the user role
-  const updatedUser = await User.findByIdAndUpdate(
-    id,
-    { role: sanitizedRole },
-    { new: true, runValidators: true }
-  );
+  // 4. Update the user role via Service Layer
+  const updatedUser = await AdminService.updateUserRole(id, sanitizedRole);
 
   if (!updatedUser) {
     return res.status(404).json({
@@ -167,12 +146,8 @@ const disableUser = asyncHandler(async (req, res) => {
     });
   }
 
-  // 3. Update the user activity status
-  const updatedUser = await User.findByIdAndUpdate(
-    id,
-    { isActive },
-    { new: true, runValidators: true }
-  );
+  // 3. Update the user activity status via Service Layer
+  const updatedUser = await AdminService.disableUser(id, isActive);
 
   if (!updatedUser) {
     return res.status(404).json({

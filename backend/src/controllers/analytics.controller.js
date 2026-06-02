@@ -1,4 +1,4 @@
-const Booking = require("../models/booking.model");
+const AnalyticsService = require("../services/analytics.service");
 const asyncHandler = require("../utils/asyncHandler");
 
 /**
@@ -6,17 +6,7 @@ const asyncHandler = require("../utils/asyncHandler");
  * GET /api/v1/analytics/booking-stats
  */
 const getBookingStats = asyncHandler(async (req, res) => {
-  const stats = await Booking.aggregate([
-    // 1. Exclude soft-deleted bookings
-    { $match: { isDeleted: false } },
-    // 2. Group by bookingStatus and sum occurrences
-    {
-      $group: {
-        _id: "$bookingStatus",
-        count: { $sum: 1 }
-      }
-    }
-  ]);
+  const stats = await AnalyticsService.getBookingStats();
 
   // Default response values
   const data = {
@@ -47,20 +37,7 @@ const getBookingStats = asyncHandler(async (req, res) => {
  * GET /api/v1/analytics/success-rate
  */
 const getSuccessRate = asyncHandler(async (req, res) => {
-  const stats = await Booking.aggregate([
-    // 1. Exclude soft-deleted records
-    { $match: { isDeleted: false } },
-    // 2. Accumulate total and completed rides concurrently
-    {
-      $group: {
-        _id: null,
-        total: { $sum: 1 },
-        completed: {
-          $sum: { $cond: [{ $eq: ["$bookingStatus", "completed"] }, 1, 0] }
-        }
-      }
-    }
-  ]);
+  const stats = await AnalyticsService.getSuccessRate();
 
   const result = stats[0] || { total: 0, completed: 0 };
   const successRate =
@@ -79,27 +56,7 @@ const getSuccessRate = asyncHandler(async (req, res) => {
  * GET /api/v1/analytics/top-vehicles
  */
 const getTopVehicles = asyncHandler(async (req, res) => {
-  const data = await Booking.aggregate([
-    // 1. Exclude soft-deleted records
-    { $match: { isDeleted: false } },
-    // 2. Group bookings by vehicleType
-    {
-      $group: {
-        _id: "$vehicleType",
-        totalBookings: { $sum: 1 }
-      }
-    },
-    // 3. Sort bookings descending
-    { $sort: { totalBookings: -1 } },
-    // 4. Project key fields
-    {
-      $project: {
-        _id: 0,
-        vehicleType: "$_id",
-        totalBookings: 1
-      }
-    }
-  ]);
+  const data = await AnalyticsService.getTopVehicles();
 
   // Clean casing presentation for frontend outputs
   const formattedData = data.map((item) => {
@@ -126,14 +83,7 @@ const getTopVehicles = asyncHandler(async (req, res) => {
  * GET /api/v1/analytics/highest-fare
  */
 const getHighestFareBookings = asyncHandler(async (req, res) => {
-  const data = await Booking.aggregate([
-    // 1. Exclude soft-deleted records
-    { $match: { isDeleted: false } },
-    // 2. Sort by fare descending
-    { $sort: { fare: -1 } },
-    // 3. Limit result count to 10
-    { $limit: 10 }
-  ]);
+  const data = await AnalyticsService.getHighestFareBookings();
 
   return res.status(200).json({
     success: true,
@@ -146,27 +96,7 @@ const getHighestFareBookings = asyncHandler(async (req, res) => {
  * GET /api/v1/analytics/monthly-rides
  */
 const getMonthlyRideStats = asyncHandler(async (req, res) => {
-  const data = await Booking.aggregate([
-    // 1. Exclude soft-deleted records
-    { $match: { isDeleted: false } },
-    // 2. Extract month from bookingDate and group bookings
-    {
-      $group: {
-        _id: { $month: "$bookingDate" },
-        totalBookings: { $sum: 1 }
-      }
-    },
-    // 3. Sort chronologically
-    { $sort: { _id: 1 } },
-    // 4. Clean projection output
-    {
-      $project: {
-        _id: 0,
-        month: "$_id",
-        totalBookings: 1
-      }
-    }
-  ]);
+  const data = await AnalyticsService.getMonthlyRideStats();
 
   return res.status(200).json({
     success: true,

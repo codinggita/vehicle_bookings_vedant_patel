@@ -1,5 +1,5 @@
 const bcrypt = require("bcryptjs");
-const User = require("../models/user.model");
+const AuthService = require("../services/auth.service");
 const generateToken = require("../utils/generateToken");
 const { sanitizeString } = require("../utils/dataCleaner");
 
@@ -34,8 +34,8 @@ const registerUser = async (req, res) => {
       });
     }
 
-    // 3. Verify user does not already exist
-    const existingUser = await User.findOne({ email: cleanedEmail });
+    // 3. Verify user does not already exist via Service Layer
+    const existingUser = await AuthService.findUserByEmail(cleanedEmail);
     if (existingUser) {
       return res.status(400).json({
         success: false,
@@ -47,16 +47,14 @@ const registerUser = async (req, res) => {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // 5. Save the new user document to MongoDB
-    const newUser = new User({
+    // 5. Save the new user document using Mongoose via Service Layer
+    await AuthService.createUser({
       name: cleanedName,
       email: cleanedEmail,
       password: hashedPassword,
       role: "user",
       isActive: true
     });
-
-    await newUser.save();
 
     // 6. Return standard success response
     return res.status(201).json({
@@ -98,8 +96,8 @@ const loginUser = async (req, res) => {
     // 2. Sanitize input email
     const cleanedEmail = sanitizeString(email, true);
 
-    // 3. Locate the user in the database (explicitly selecting the hidden password field)
-    const user = await User.findOne({ email: cleanedEmail }).select("+password");
+    // 3. Locate the user (explicitly selecting password) via Service Layer
+    const user = await AuthService.findUserByEmailWithPassword(cleanedEmail);
 
     if (!user) {
       return res.status(401).json({
