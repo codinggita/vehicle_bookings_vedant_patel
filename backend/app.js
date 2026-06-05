@@ -6,6 +6,11 @@ const authRoutes = require("./routes/auth.routes");
 const analyticsRoutes = require("./routes/analytics.routes");
 const adminRoutes = require("./routes/admin.routes");
 const healthRoutes = require("./routes/health.routes");
+const statsRoutes = require("./routes/stats.routes");
+const searchRoutes = require("./routes/search.routes");
+const jwtRoutes = require("./routes/jwt.routes");
+const protectedRoutes = require("./routes/protected.routes");
+const othersRoutes = require("./routes/others.routes");
 const apiLimiter = require("./middlewares/rateLimiter.middleware");
 const globalErrorHandler = require("./middlewares/error.middleware");
 
@@ -36,6 +41,11 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/analytics", analyticsRoutes);
 app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/health", healthRoutes);
+app.use("/api/v1/stats", statsRoutes);
+app.use("/api/v1/search", searchRoutes);
+app.use("/api/v1/jwt", jwtRoutes);
+app.use("/api/v1/protected", protectedRoutes);
+app.use("/api/v1", othersRoutes);
 
 // 7. Route 404 Router Fallback
 app.use((req, res, next) => {

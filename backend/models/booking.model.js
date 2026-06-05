@@ -7,23 +7,30 @@ const bookingSchema = new mongoose.Schema(
       ref: "User",
       default: null,
     },
+    bookingId: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+    },
+    customerId: {
+      type: String,
+      trim: true,
+    },
     customerName: {
       type: String,
-      required: [true, "Customer name is required"],
       trim: true,
+      default: null,
     },
     customerPhone: {
       type: String,
       trim: true,
+      default: null,
     },
     vehicleType: {
       type: String,
       required: [true, "Vehicle type is required"],
       trim: true,
-      enum: {
-        values: ["sedan", "suv", "hatchback", "luxury"],
-        message: "{VALUE} is not a valid vehicle type",
-      },
     },
     pickupLocation: {
       type: String,
@@ -49,29 +56,16 @@ const bookingSchema = new mongoose.Schema(
       type: String,
       required: [true, "Booking status is required"],
       trim: true,
-      enum: {
-        values: ["pending", "confirmed", "completed", "cancelled"],
-        message: "{VALUE} is not a valid booking status",
-      },
       default: "pending",
     },
     paymentMethod: {
       type: String,
-      required: [true, "Payment method is required"],
       trim: true,
-      enum: {
-        values: ["cash", "card", "upi", "net_banking"],
-        message: "{VALUE} is not a valid payment method",
-      },
+      default: null,
     },
     paymentStatus: {
       type: String,
-      required: [true, "Payment status is required"],
       trim: true,
-      enum: {
-        values: ["pending", "paid", "failed", "refunded"],
-        message: "{VALUE} is not a valid payment status",
-      },
       default: "pending",
     },
     rating: {
@@ -79,6 +73,46 @@ const bookingSchema = new mongoose.Schema(
       min: [1, "Rating must be at least 1"],
       max: [5, "Rating cannot exceed 5"],
       default: null,
+    },
+    driverRating: {
+      type: Number,
+      min: [1, "Rating must be at least 1"],
+      max: [5, "Rating cannot exceed 5"],
+      default: null,
+    },
+    customerRating: {
+      type: Number,
+      min: [1, "Rating must be at least 1"],
+      max: [5, "Rating cannot exceed 5"],
+      default: null,
+    },
+    vTat: {
+      type: Number,
+      default: null,
+    },
+    cTat: {
+      type: Number,
+      default: null,
+    },
+    cancelledByCustomerReason: {
+      type: String,
+      default: null,
+      trim: true,
+    },
+    cancelledByDriverReason: {
+      type: String,
+      default: null,
+      trim: true,
+    },
+    isIncomplete: {
+      type: String,
+      default: null,
+      trim: true,
+    },
+    incompleteReason: {
+      type: String,
+      default: null,
+      trim: true,
     },
     bookingDate: {
       type: Date,
@@ -105,12 +139,14 @@ const bookingSchema = new mongoose.Schema(
 
 // Indexes for query performance optimization
 bookingSchema.index({ userId: 1 });
+bookingSchema.index({ customerId: 1 });
 bookingSchema.index({ bookingStatus: 1 });
 bookingSchema.index({ vehicleType: 1 });
 bookingSchema.index({ bookingDate: -1 });
-bookingSchema.index({ paymentStatus: 1 });
-bookingSchema.index({ customerName: 1 });
 bookingSchema.index({ paymentMethod: 1 });
+bookingSchema.index({ customerName: 1 });
+bookingSchema.index({ pickupLocation: 1 });
+bookingSchema.index({ dropLocation: 1 });
 
 const Booking = mongoose.model("Booking", bookingSchema);
 
