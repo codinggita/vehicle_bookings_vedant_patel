@@ -1,6 +1,10 @@
 const mongoose = require("mongoose");
 const Booking = require("../models/booking.model");
 
+// Helper wrapper for async endpoints
+const asyncHandler = (fn) => (req, res, next) =>
+  Promise.resolve(fn(req, res, next)).catch(next);
+
 // === INLINED UTILITIES ===
 
 const toNull = (val) => {
@@ -34,818 +38,688 @@ const sanitizeString = (val, normalizeCasing = false) => {
   return normalizeCasing ? trimmed.toLowerCase() : trimmed;
 };
 
-const getPaginationConfig = (query = {}, options = {}) => {
-  let page = parseInt(query.page, 10);
-  let limit = parseInt(query.limit, 10);
+// User boundary helper
+const applyUserScope = (req, query) => {
+  if (req.user && req.user.role !== "admin") {
+    query.userId = req.user._id;
+  }
+  return query;
+};
 
-  const defaultPage = options.defaultPage || 1;
-  const defaultLimit = options.defaultLimit || 10;
-  const maxLimit = options.maxLimit || 100;
+// === CORE CRUD CONTROLLERS ===
 
-  if (isNaN(page) || page <= 0) page = defaultPage;
-  if (isNaN(limit) || limit <= 0) limit = defaultLimit;
-  if (limit > maxLimit) limit = maxLimit;
+const createBooking = asyncHandler(async (req, res) => {
+  const {
+    bookingId,
+    customerId,
+    customerName,
+    customerPhone,
+    vehicleType,
+    pickupLocation,
+    dropLocation,
+    distance,
+    fare,
+    bookingStatus,
+    paymentMethod,
+    paymentStatus,
+    rating,
+    driverRating,
+    customerRating,
+    vTat,
+    cTat,
+    cancelledByCustomerReason,
+    cancelledByDriverReason,
+    isIncomplete,
+    incompleteReason,
+    bookingDate,
+    rideStartTime,
+    rideEndTime
+  } = req.body;
 
+  const newBooking = new Booking({
+    userId: req.user ? req.user._id : null,
+    bookingId: sanitizeString(bookingId),
+    customerId: sanitizeString(customerId),
+    customerName: sanitizeString(customerName),
+    customerPhone: sanitizeString(customerPhone),
+    vehicleType: sanitizeString(vehicleType) || "sedan",
+    pickupLocation: sanitizeString(pickupLocation) || "unknown",
+    dropLocation: sanitizeString(dropLocation) || "unknown",
+    distance: toNumber(distance, 0),
+    fare: toNumber(fare, 0),
+    bookingStatus: sanitizeString(bookingStatus) || "pending",
+    paymentMethod: sanitizeString(paymentMethod),
+    paymentStatus: sanitizeString(paymentStatus) || "pending",
+    rating: toNumber(rating),
+    driverRating: toNumber(driverRating),
+    customerRating: toNumber(customerRating),
+    vTat: toNumber(vTat),
+    cTat: toNumber(cTat),
+    cancelledByCustomerReason: sanitizeString(cancelledByCustomerReason),
+    cancelledByDriverReason: sanitizeString(cancelledByDriverReason),
+    isIncomplete: sanitizeString(isIncomplete),
+    incompleteReason: sanitizeString(incompleteReason),
+    bookingDate: bookingDate ? toDate(bookingDate) : new Date(),
+    rideStartTime: rideStartTime ? toDate(rideStartTime) : null,
+    rideEndTime: rideEndTime ? toDate(rideEndTime) : null,
+    isDeleted: false
+  });
+
+  const saved = await newBooking.save();
+  return res.status(201).json({ success: true, message: "Booking created successfully", data: saved });
+});
+
+const getAllBookings = asyncHandler(async (req, res) => {
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 10;
   const skip = (page - 1) * limit;
-  return { page, limit, skip };
-};
 
-const getFilterConfig = (query = {}) => {
-  const filter = {};
+  // Build filter query dynamically
+  const filter = { isDeleted: false };
+  applyUserScope(req, filter);
 
-  if (query.status !== undefined && query.status !== "") {
-    const sanitizedStatus = sanitizeString(query.status, true);
-    const allowedStatuses = ["pending", "confirmed", "completed", "cancelled"];
-    if (sanitizedStatus && allowedStatuses.includes(sanitizedStatus)) {
-      filter.bookingStatus = sanitizedStatus;
-    }
+  if (req.query.status) filter.bookingStatus = req.query.status;
+  if (req.query.vehicle) filter.vehicleType = req.query.vehicle;
+  if (req.query.payment) filter.paymentMethod = req.query.payment;
+  if (req.query.pickup) filter.pickupLocation = { $regex: escapeRegex(req.query.pickup), $options: "i" };
+  if (req.query.drop) filter.dropLocation = { $regex: escapeRegex(req.query.drop), $options: "i" };
+  if (req.query.date) {
+    const start = new Date(req.query.date);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(req.query.date);
+    end.setHours(23, 59, 59, 999);
+    filter.bookingDate = { $gte: start, $lte: end };
+  }
+  if (req.query.driverRating) filter.driverRating = parseFloat(req.query.driverRating);
+  if (req.query.customerRating) filter.customerRating = parseFloat(req.query.customerRating);
+  if (req.query.customer) filter.customerId = req.query.customer;
+  if (req.query.incomplete) filter.isIncomplete = req.query.incomplete;
+
+  // Range filters
+  if (req.query.minFare || req.query.maxFare) {
+    filter.fare = {};
+    if (req.query.minFare) filter.fare.$gte = parseFloat(req.query.minFare);
+    if (req.query.maxFare) filter.fare.$lte = parseFloat(req.query.maxFare);
+  }
+  if (req.query.minDistance || req.query.maxDistance) {
+    filter.distance = {};
+    if (req.query.minDistance) filter.distance.$gte = parseFloat(req.query.minDistance);
+    if (req.query.maxDistance) filter.distance.$lte = parseFloat(req.query.maxDistance);
+  }
+  if (req.query.minRating || req.query.maxRating) {
+    filter.customerRating = {};
+    if (req.query.minRating) filter.customerRating.$gte = parseFloat(req.query.minRating);
+    if (req.query.maxRating) filter.customerRating.$lte = parseFloat(req.query.maxRating);
   }
 
-  if (query.paymentStatus !== undefined && query.paymentStatus !== "") {
-    const sanitizedPayment = sanitizeString(query.paymentStatus, true);
-    const allowedPayments = ["pending", "paid", "failed", "refunded"];
-    if (sanitizedPayment && allowedPayments.includes(sanitizedPayment)) {
-      filter.paymentStatus = sanitizedPayment;
-    }
+  // Boolean/Flag filters
+  if (req.query.cancelledByDriver === "true") {
+    filter.cancelledByDriverReason = { $ne: null };
+  }
+  if (req.query.cancelledByCustomer === "true") {
+    filter.cancelledByCustomerReason = { $ne: null };
+  }
+  if (req.query.distanceAbove) {
+    filter.distance = { $gt: parseFloat(req.query.distanceAbove) };
+  }
+  if (req.query.distanceBelow) {
+    filter.distance = { $lt: parseFloat(req.query.distanceBelow) };
   }
 
-  if (query.vehicleType !== undefined && query.vehicleType !== "") {
-    const sanitizedVehicle = sanitizeString(query.vehicleType, true);
-    const allowedVehicles = ["sedan", "suv", "hatchback", "luxury"];
-    if (sanitizedVehicle && allowedVehicles.includes(sanitizedVehicle)) {
-      filter.vehicleType = sanitizedVehicle;
-    }
+  // Aggregate operators with expressions
+  if (req.query.month) {
+    filter.$expr = { $eq: [{ $month: "$bookingDate" }, parseInt(req.query.month, 10)] };
+  }
+  if (req.query.year) {
+    filter.$expr = { $eq: [{ $year: "$bookingDate" }, parseInt(req.query.year, 10)] };
+  }
+  if (req.query.hour) {
+    filter.$expr = { $eq: [{ $hour: "$bookingDate" }, parseInt(req.query.hour, 10)] };
   }
 
-  if (query.rating !== undefined && query.rating !== "") {
-    const parsedRating = toNumber(query.rating);
-    if (parsedRating !== null && parsedRating >= 1 && parsedRating <= 5) {
-      filter.rating = parsedRating;
-    }
-  }
-
-  if ((query.minFare !== undefined && query.minFare !== "") || (query.maxFare !== undefined && query.maxFare !== "")) {
-    const fareQuery = {};
-    if (query.minFare !== undefined && query.minFare !== "") {
-      const minFare = toNumber(query.minFare);
-      if (minFare !== null && minFare >= 0) fareQuery.$gte = minFare;
-    }
-    if (query.maxFare !== undefined && query.maxFare !== "") {
-      const maxFare = toNumber(query.maxFare);
-      if (maxFare !== null && maxFare >= 0) fareQuery.$lte = maxFare;
-    }
-    if (Object.keys(fareQuery).length > 0) filter.fare = fareQuery;
-  }
-
-  if ((query.minDistance !== undefined && query.minDistance !== "") || (query.maxDistance !== undefined && query.maxDistance !== "")) {
-    const distanceQuery = {};
-    if (query.minDistance !== undefined && query.minDistance !== "") {
-      const minDistance = toNumber(query.minDistance);
-      if (minDistance !== null && minDistance >= 0) distanceQuery.$gte = minDistance;
-    }
-    if (query.maxDistance !== undefined && query.maxDistance !== "") {
-      const maxDistance = toNumber(query.maxDistance);
-      if (maxDistance !== null && maxDistance >= 0) distanceQuery.$lte = maxDistance;
-    }
-    if (Object.keys(distanceQuery).length > 0) filter.distance = distanceQuery;
-  }
-
-  return filter;
-};
-
-const getSortConfig = (query = {}) => {
-  const sortBy = query.sortBy || "createdAt";
-  const order = query.order || "desc";
-
-  const allowedSortFields = [
-    "customerName",
-    "vehicleType",
-    "distance",
-    "fare",
-    "bookingStatus",
-    "paymentStatus",
-    "rating",
-    "bookingDate",
-    "createdAt"
-  ];
-
-  const sortField = allowedSortFields.includes(sortBy) ? sortBy : "createdAt";
-  const sortOrder = order.toLowerCase() === "asc" ? 1 : -1;
-
-  return { [sortField]: sortOrder };
-};
-
-const getSearchConfig = (query = {}) => {
-  if (!query.search || String(query.search).trim() === "") {
-    return {};
-  }
-
-  const escapeRegex = (string) => string.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
-  const escapedSearch = escapeRegex(String(query.search).trim());
-  const searchRegex = { $regex: escapedSearch, $options: "i" };
-
-  return {
-    $or: [
-      { customerName: searchRegex },
-      { vehicleType: searchRegex },
-      { pickupLocation: searchRegex },
-      { dropLocation: searchRegex },
-      { customerPhone: searchRegex },
-      { paymentMethod: searchRegex },
-      { bookingStatus: searchRegex }
-    ]
-  };
-};
-
-/**
- * Create a new vehicle booking.
- * POST /api/v1/bookings
- */
-const createBooking = async (req, res) => {
-  try {
-    const {
-      customerName,
-      customerPhone,
-      vehicleType,
-      pickupLocation,
-      dropLocation,
-      distance,
-      fare,
-      bookingStatus,
-      paymentMethod,
-      paymentStatus,
-      rating,
-      bookingDate,
-      rideStartTime,
-      rideEndTime
-    } = req.body;
-
-    // 1. Basic validation of required request body fields
-    if (!customerName || String(customerName).trim() === "") {
-      return res.status(400).json({ success: false, message: "Customer name is required" });
-    }
-    if (!vehicleType || String(vehicleType).trim() === "") {
-      return res.status(400).json({ success: false, message: "Vehicle type is required" });
-    }
-    if (!pickupLocation || String(pickupLocation).trim() === "") {
-      return res.status(400).json({ success: false, message: "Pickup location is required" });
-    }
-    if (!dropLocation || String(dropLocation).trim() === "") {
-      return res.status(400).json({ success: false, message: "Drop location is required" });
-    }
-    if (distance === undefined || distance === null) {
-      return res.status(400).json({ success: false, message: "Distance is required" });
-    }
-    if (fare === undefined || fare === null) {
-      return res.status(400).json({ success: false, message: "Fare is required" });
-    }
-    if (!paymentMethod || String(paymentMethod).trim() === "") {
-      return res.status(400).json({ success: false, message: "Payment method is required" });
-    }
-
-    // 2. Normalize and clean the input using our utilities to guarantee type consistency
-    const cleanedCustomerName = sanitizeString(customerName);
-    const cleanedVehicleType = sanitizeString(vehicleType, true); // Enforce lowercase
-    const cleanedPickupLocation = sanitizeString(pickupLocation);
-    const cleanedDropLocation = sanitizeString(dropLocation);
-    const parsedDistance = toNumber(distance);
-    const parsedFare = toNumber(fare);
-    const cleanedPaymentMethod = sanitizeString(paymentMethod, true); // Enforce lowercase
-
-    // Validation checks on parsed numbers
-    if (parsedDistance === null || parsedDistance < 0) {
-      return res.status(400).json({ success: false, message: "Distance must be a valid non-negative number" });
-    }
-    if (parsedFare === null || parsedFare < 0) {
-      return res.status(400).json({ success: false, message: "Fare must be a valid non-negative number" });
-    }
-
-    // 3. Assemble and sanitize optional fields
-    const cleanedCustomerPhone = sanitizeString(customerPhone);
-    const cleanedBookingStatus = sanitizeString(bookingStatus, true) || "pending";
-    const cleanedPaymentStatus = sanitizeString(paymentStatus, true) || "pending";
-    const parsedRating = rating !== undefined ? toNumber(rating) : null;
-    const parsedBookingDate = bookingDate ? toDate(bookingDate) : new Date();
-    const parsedRideStartTime = rideStartTime ? toDate(rideStartTime) : null;
-    const parsedRideEndTime = rideEndTime ? toDate(rideEndTime) : null;
-
-    // Additional range checks for optional fields
-    if (parsedRating !== null && (parsedRating < 1 || parsedRating > 5)) {
-      return res.status(400).json({ success: false, message: "Rating must be between 1 and 5" });
-    }
-
-    // 4. Create and save document in MongoDB using Mongoose schema
-    const newBooking = new Booking({
-      userId: req.user ? req.user._id : (req.body.userId || null),
-      customerName: cleanedCustomerName,
-      customerPhone: cleanedCustomerPhone,
-      vehicleType: cleanedVehicleType,
-      pickupLocation: cleanedPickupLocation,
-      dropLocation: cleanedDropLocation,
-      distance: parsedDistance,
-      fare: parsedFare,
-      bookingStatus: cleanedBookingStatus,
-      paymentMethod: cleanedPaymentMethod,
-      paymentStatus: cleanedPaymentStatus,
-      rating: parsedRating,
-      bookingDate: parsedBookingDate,
-      rideStartTime: parsedRideStartTime,
-      rideEndTime: parsedRideEndTime,
-      isDeleted: false
-    });
-
-    const savedBooking = await newBooking.save();
-
-    // 5. Return professional API response
-    return res.status(201).json({
-      success: true,
-      message: "Booking created successfully",
-      data: savedBooking
-    });
-
-  } catch (error) {
-    console.error("Error creating booking:", error);
-    
-    // Catch Mongoose schema validation errors specifically
-    if (error.name === "ValidationError") {
-      const messages = Object.values(error.errors).map((val) => val.message);
-      return res.status(400).json({ success: false, message: messages.join(", ") });
-    }
-
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error during booking creation"
-    });
-  }
-};
-
-/**
- * Retrieve all active bookings with pagination support.
- * GET /api/v1/bookings
- */
-const getAllBookings = async (req, res) => {
-  try {
-    // 1. Process query parameters using pagination helper
-    const { page, limit, skip } = getPaginationConfig(req.query);
-
-    // 2. Extract dynamic filters, search queries, and sorting options from query parameters
-    const filter = getFilterConfig(req.query);
-    const search = getSearchConfig(req.query);
-    const sort = getSortConfig(req.query);
-
-    // 3. Combined query configuration (always including soft delete awareness)
-    const query = { ...filter, ...search, isDeleted: false };
-
-    // Restrict regular users to their own bookings
-    if (req.user && req.user.role !== "admin") {
-      query.userId = req.user._id;
-    }
-
-    // 4. Run queries in parallel for optimal database performance (using .lean() for read-only optimization)
-    const [totalBookings, bookings] = await Promise.all([
-      Booking.countDocuments(query),
-      Booking.find(query)
-        .sort(sort)
-        .skip(skip)
-        .limit(limit)
-        .lean()
-    ]);
-
-    // 5. Return standard-compliant paginated response
-    return res.status(200).json({
-      success: true,
-      message: "Bookings fetched successfully",
-      pagination: {
-        total: totalBookings,
-        page,
-        limit,
-        totalPages: Math.ceil(totalBookings / limit)
-      },
-      data: bookings
-    });
-  } catch (error) {
-    console.error("Error fetching bookings:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error during fetching bookings"
-    });
-  }
-};
-
-/**
- * Retrieve a single booking by ID.
- * GET /api/v1/bookings/:id
- */
-const getBookingById = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    // 1. Validate MongoDB ObjectId format to prevent database query crashes
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid booking ID format"
-      });
-    }
-
-    // 2. Query MongoDB, excluding soft-deleted records (using .lean() for read-only optimization)
-    const query = { _id: id, isDeleted: false };
-    if (req.user && req.user.role !== "admin") {
-      query.userId = req.user._id;
-    }
-    const booking = await Booking.findOne(query).lean();
-
-    // 3. Return 404 if document does not exist
-    if (!booking) {
-      return res.status(404).json({
-        success: false,
-        message: "Booking not found"
-      });
-    }
-
-    // 4. Return successful response with clean structure
-    return res.status(200).json({
-      success: true,
-      message: "Booking fetched successfully",
-      data: booking
-    });
-  } catch (error) {
-    console.error("Error fetching booking by ID:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error during fetching booking"
-    });
-  }
-};
-
-/**
- * Update a booking fully.
- * PUT /api/v1/bookings/:id
- */
-const updateBooking = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    // 1. Validate MongoDB ObjectId format
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid booking ID format"
-      });
-    }
-
-    // 2. Validate request body is not empty
-    if (!req.body || Object.keys(req.body).length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Request body cannot be empty"
-      });
-    }
-
-    // 3. Soft Delete Awareness: Verify booking exists and is not deleted
-    const query = { _id: id, isDeleted: false };
-    if (req.user && req.user.role !== "admin") {
-      query.userId = req.user._id;
-    }
-    const existingBooking = await Booking.findOne(query);
-    if (!existingBooking) {
-      return res.status(404).json({
-        success: false,
-        message: "Booking not found"
-      });
-    }
-
-    // 4. Sanitize and normalize input fields if provided
-    const updateData = {};
-    const allowedFields = [
-      "customerName",
-      "customerPhone",
-      "vehicleType",
-      "pickupLocation",
-      "dropLocation",
-      "distance",
-      "fare",
-      "bookingStatus",
-      "paymentMethod",
-      "paymentStatus",
-      "rating",
-      "bookingDate",
-      "rideStartTime",
-      "rideEndTime"
-    ];
-
-    for (const field of allowedFields) {
-      if (req.body[field] !== undefined) {
-        if (field === "distance") {
-          const dist = toNumber(req.body.distance);
-          if (dist === null || dist < 0) {
-            return res.status(400).json({ success: false, message: "Distance must be a valid non-negative number" });
-          }
-          updateData.distance = dist;
-        } else if (field === "fare") {
-          const f = toNumber(req.body.fare);
-          if (f === null || f < 0) {
-            return res.status(400).json({ success: false, message: "Fare must be a valid non-negative number" });
-          }
-          updateData.fare = f;
-        } else if (field === "rating") {
-          if (req.body.rating === null || req.body.rating === "") {
-            updateData.rating = null;
-          } else {
-            const r = toNumber(req.body.rating);
-            if (r === null || r < 1 || r > 5) {
-              return res.status(400).json({ success: false, message: "Rating must be between 1 and 5" });
-            }
-            updateData.rating = r;
-          }
-        } else if (["vehicleType", "bookingStatus", "paymentMethod", "paymentStatus"].includes(field)) {
-          updateData[field] = sanitizeString(req.body[field], true); // Force lowercase
-        } else if (["bookingDate", "rideStartTime", "rideEndTime"].includes(field)) {
-          updateData[field] = req.body[field] ? toDate(req.body[field]) : null;
-        } else {
-          updateData[field] = sanitizeString(req.body[field]);
-        }
-      }
-    }
-
-    // 5. Update and return new document using findByIdAndUpdate with Mongoose schema validation enabled
-    const updatedBooking = await Booking.findByIdAndUpdate(
-      id,
-      updateData,
-      { new: true, runValidators: true }
-    );
-
-    return res.status(200).json({
-      success: true,
-      message: "Booking updated successfully",
-      data: updatedBooking
-    });
-
-  } catch (error) {
-    console.error("Error updating booking:", error);
-
-    if (error.name === "ValidationError") {
-      const messages = Object.values(error.errors).map((val) => val.message);
-      return res.status(400).json({ success: false, message: messages.join(", ") });
-    }
-
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error during booking update"
-    });
-  }
-};
-
-/**
- * Update only booking status.
- * PATCH /api/v1/bookings/:id/status
- */
-const updateBookingStatus = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { bookingStatus } = req.body;
-
-    // 1. Validate MongoDB ObjectId format
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid booking ID format"
-      });
-    }
-
-    // 2. Validate request body status presence
-    if (!bookingStatus || String(bookingStatus).trim() === "") {
-      return res.status(400).json({
-        success: false,
-        message: "Booking status is required"
-      });
-    }
-
-    // 3. Validate bookingStatus enum values
-    const allowedStatuses = ["pending", "confirmed", "completed", "cancelled"];
-    const sanitizedStatus = sanitizeString(bookingStatus, true);
-
-    if (!allowedStatuses.includes(sanitizedStatus)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid booking status"
-      });
-    }
-
-    // 4. Soft Delete Awareness: Verify booking exists and is not deleted
-    const query = { _id: id, isDeleted: false };
-    if (req.user && req.user.role !== "admin") {
-      query.userId = req.user._id;
-    }
-    const existingBooking = await Booking.findOne(query);
-    if (!existingBooking) {
-      return res.status(404).json({
-        success: false,
-        message: "Booking not found"
-      });
-    }
-
-    // 5. Update only the status field
-    const updatedBooking = await Booking.findByIdAndUpdate(
-      id,
-      { bookingStatus: sanitizedStatus },
-      { new: true, runValidators: true }
-    );
-
-    return res.status(200).json({
-      success: true,
-      message: "Booking status updated successfully",
-      data: updatedBooking
-    });
-
-  } catch (error) {
-    console.error("Error updating booking status:", error);
-
-    if (error.name === "ValidationError") {
-      const messages = Object.values(error.errors).map((val) => val.message);
-      return res.status(400).json({ success: false, message: messages.join(", ") });
-    }
-
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error during booking status update"
-    });
-  }
-};
-
-/**
- * Hard delete a booking permanently from database.
- * DELETE /api/v1/bookings/:id
- */
-const deleteBooking = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    // 1. Validate MongoDB ObjectId format
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid booking ID format"
-      });
-    }
-
-    // 2. Perform permanent database deletion
-    const query = { _id: id };
-    if (req.user && req.user.role !== "admin") {
-      query.userId = req.user._id;
-    }
-    const deletedBooking = await Booking.findOneAndDelete(query);
-
-    // 3. Return 404 if booking not found
-    if (!deletedBooking) {
-      return res.status(404).json({
-        success: false,
-        message: "Booking not found"
-      });
-    }
-
-    // 4. Return success response
-    return res.status(200).json({
-      success: true,
-      message: "Booking deleted successfully"
-    });
-
-  } catch (error) {
-    console.error("Error during hard delete:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error during booking deletion"
-    });
-  }
-};
-
-/**
- * Soft delete a booking (mark isDeleted = true).
- * PATCH /api/v1/bookings/:id/soft-delete
- */
-const softDeleteBooking = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    // 1. Validate MongoDB ObjectId format
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid booking ID format"
-      });
-    }
-
-    // 2. Find booking to check state and existence
-    const query = { _id: id };
-    if (req.user && req.user.role !== "admin") {
-      query.userId = req.user._id;
-    }
-    const booking = await Booking.findOne(query);
-    if (!booking) {
-      return res.status(404).json({
-        success: false,
-        message: "Booking not found"
-      });
-    }
-
-    // 3. Prevent double soft delete (return 409 Conflict)
-    if (booking.isDeleted) {
-      return res.status(409).json({
-        success: false,
-        message: "Booking already deleted"
-      });
-    }
-
-    // 4. Perform soft deletion (set isDeleted = true)
-    booking.isDeleted = true;
-    await booking.save();
-
-    // 5. Return success response
-    return res.status(200).json({
-      success: true,
-      message: "Booking soft deleted successfully"
-    });
-
-  } catch (error) {
-    console.error("Error during soft delete:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error during soft deletion"
-    });
-  }
-};
-
-/**
- * Retrieve bookings matching a specific status.
- * GET /api/v1/bookings/status/:status
- */
-const getBookingsByStatus = async (req, res) => {
-  try {
-    const { status } = req.params;
-
-    // 1. Sanitize and validate booking status
-    const sanitizedStatus = sanitizeString(status, true);
-    const allowedStatuses = ["pending", "confirmed", "completed", "cancelled"];
-
-    if (!sanitizedStatus || !allowedStatuses.includes(sanitizedStatus)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid booking status"
-      });
-    }
-
-    // 2. Query MongoDB, excluding soft deleted records (using .lean() for read-only optimization)
-    const query = { bookingStatus: sanitizedStatus, isDeleted: false };
-    if (req.user && req.user.role !== "admin") {
-      query.userId = req.user._id;
-    }
-    const bookings = await Booking.find(query).lean();
-
-    // 3. Return RESTful response
-    return res.status(200).json({
-      success: true,
-      message: "Bookings fetched successfully",
-      count: bookings.length,
-      data: bookings
-    });
-  } catch (error) {
-    console.error("Error fetching bookings by status:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error during fetching bookings by status"
-    });
-  }
-};
-
-/**
- * Retrieve bookings matching a specific vehicle type.
- * GET /api/v1/bookings/vehicle/:vehicleType
- */
-const getBookingsByVehicleType = async (req, res) => {
-  try {
-    const { vehicleType } = req.params;
-
-    // 1. Sanitize and validate vehicle type
-    const sanitizedVehicle = sanitizeString(vehicleType, true);
-    const allowedVehicles = ["sedan", "suv", "hatchback", "luxury"];
-
-    if (!sanitizedVehicle || !allowedVehicles.includes(sanitizedVehicle)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid vehicle type"
-      });
-    }
-
-    // 2. Query MongoDB, excluding soft deleted records (using .lean() for read-only optimization)
-    const query = { vehicleType: sanitizedVehicle, isDeleted: false };
-    if (req.user && req.user.role !== "admin") {
-      query.userId = req.user._id;
-    }
-    const bookings = await Booking.find(query).lean();
-
-    // 3. Return RESTful response
-    return res.status(200).json({
-      success: true,
-      message: "Bookings fetched successfully",
-      count: bookings.length,
-      data: bookings
-    });
-  } catch (error) {
-    console.error("Error fetching bookings by vehicle type:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error during fetching bookings by vehicle type"
-    });
-  }
-};
-
-/**
- * Retrieve bookings matching a customer name.
- * Supports partial and case-insensitive regex matches.
- * GET /api/v1/bookings/customer/:customerName
- */
-const getBookingsByCustomer = async (req, res) => {
-  try {
-    const { customerName } = req.params;
-
-    if (!customerName || String(customerName).trim() === "") {
-      return res.status(400).json({
-        success: false,
-        message: "Customer name parameter is required"
-      });
-    }
-
-    const sanitizedCustomer = sanitizeString(customerName);
-    
-    // Safety helper: Escape regex special characters to prevent injection
-    const escapeRegex = (string) => string.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
-    const escapedCustomer = escapeRegex(sanitizedCustomer);
-
-    // Query MongoDB with case-insensitive partial match (using .lean() for read-only optimization)
-    const query = {
-      customerName: { $regex: escapedCustomer, $options: "i" },
-      isDeleted: false
+  // Sorting parser
+  let sortConfig = { bookingDate: -1 }; // default
+  if (req.query.sort) {
+    const rawSort = req.query.sort;
+    const isDesc = rawSort.startsWith("-");
+    const cleanSortField = isDesc ? rawSort.slice(1) : rawSort;
+    const order = isDesc ? -1 : 1;
+
+    // Whitelist mapping
+    const fieldMapping = {
+      Booking_Value: "fare",
+      Ride_Distance: "distance",
+      Driver_Ratings: "driverRating",
+      Customer_Rating: "customerRating",
+      Date: "bookingDate",
+      Vehicle_Type: "vehicleType",
+      Payment_Method: "paymentMethod",
+      Pickup_Location: "pickupLocation",
+      Drop_Location: "dropLocation",
+      Booking_Status: "bookingStatus"
     };
-    if (req.user && req.user.role !== "admin") {
-      query.userId = req.user._id;
-    }
-    const bookings = await Booking.find(query).lean();
 
-    return res.status(200).json({
-      success: true,
-      message: "Bookings fetched successfully",
-      count: bookings.length,
-      data: bookings
-    });
-  } catch (error) {
-    console.error("Error fetching bookings by customer:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error during fetching bookings by customer"
-    });
+    const mappedField = fieldMapping[cleanSortField] || cleanSortField;
+    sortConfig = { [mappedField]: order };
   }
-};
 
-/**
- * Retrieve bookings matching a payment method.
- * GET /api/v1/bookings/payment/:paymentMethod
- */
-const getBookingsByPaymentMethod = async (req, res) => {
-  try {
-    const { paymentMethod } = req.params;
+  const [total, data] = await Promise.all([
+    Booking.countDocuments(filter),
+    Booking.find(filter).sort(sortConfig).skip(skip).limit(limit).lean()
+  ]);
 
-    // Normalize input to lowercase to support case-insensitive parameter input
-    const sanitizedMethod = sanitizeString(paymentMethod, true);
-    const allowedMethods = ["cash", "card", "upi", "net_banking"];
+  return res.status(200).json({
+    success: true,
+    pagination: { total, page, limit, pages: Math.ceil(total / limit) },
+    data
+  });
+});
 
-    if (!sanitizedMethod || !allowedMethods.includes(sanitizedMethod)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid payment method"
-      });
-    }
+const getBookingById = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const filter = { _id: id, isDeleted: false };
+  applyUserScope(req, filter);
 
-    // Query MongoDB, excluding soft deleted records (using .lean() for read-only optimization)
-    const query = { paymentMethod: sanitizedMethod, isDeleted: false };
-    if (req.user && req.user.role !== "admin") {
-      query.userId = req.user._id;
-    }
-    const bookings = await Booking.find(query).lean();
+  const booking = await Booking.findOne(filter).lean();
+  if (!booking) return res.status(404).json({ success: false, message: "Booking not found" });
 
-    return res.status(200).json({
-      success: true,
-      message: "Bookings fetched successfully",
-      count: bookings.length,
-      data: bookings
-    });
-  } catch (error) {
-    console.error("Error fetching bookings by payment method:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error during fetching bookings by payment method"
-    });
+  return res.status(200).json({ success: true, data: booking });
+});
+
+const updateBooking = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const filter = { _id: id, isDeleted: false };
+  applyUserScope(req, filter);
+
+  const updated = await Booking.findOneAndUpdate(filter, req.body, { new: true, runValidators: true });
+  if (!updated) return res.status(404).json({ success: false, message: "Booking not found" });
+
+  return res.status(200).json({ success: true, message: "Booking updated successfully", data: updated });
+});
+
+const updateBookingStatus = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { bookingStatus } = req.body;
+  if (!bookingStatus) return res.status(400).json({ success: false, message: "bookingStatus is required" });
+
+  const filter = { _id: id, isDeleted: false };
+  applyUserScope(req, filter);
+
+  const updated = await Booking.findOneAndUpdate(
+    filter,
+    { bookingStatus },
+    { new: true, runValidators: true }
+  );
+  if (!updated) return res.status(404).json({ success: false, message: "Booking not found" });
+  return res.status(200).json({ success: true, message: "Status updated successfully", data: updated });
+});
+
+const deleteBooking = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const filter = { _id: id };
+  applyUserScope(req, filter);
+
+  const deleted = await Booking.findOneAndDelete(filter);
+  if (!deleted) return res.status(404).json({ success: false, message: "Booking not found" });
+
+  return res.status(200).json({ success: true, message: "Booking permanently deleted" });
+});
+
+const softDeleteBooking = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const filter = { _id: id, isDeleted: false };
+  applyUserScope(req, filter);
+
+  const booking = await Booking.findOneAndUpdate(filter, { isDeleted: true }, { new: true });
+  if (!booking) return res.status(404).json({ success: false, message: "Booking not found or already deleted" });
+
+  return res.status(200).json({ success: true, message: "Booking soft-deleted successfully" });
+});
+
+// === CUSTOM PARAMETER ROUTE CONTROLLERS ===
+
+const getBookingByCustomId = asyncHandler(async (req, res) => {
+  const filter = { bookingId: req.params.bookingId, isDeleted: false };
+  applyUserScope(req, filter);
+  const data = await Booking.findOne(filter).lean();
+  if (!data) return res.status(404).json({ success: false, message: "Booking not found" });
+  return res.status(200).json({ success: true, data });
+});
+
+const getBookingsByStatus = asyncHandler(async (req, res) => {
+  const filter = { bookingStatus: req.params.status, isDeleted: false };
+  applyUserScope(req, filter);
+  const data = await Booking.find(filter).lean();
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const getBookingsByCustomer = asyncHandler(async (req, res) => {
+  const filter = { customerId: req.params.customerId, isDeleted: false };
+  applyUserScope(req, filter);
+  const data = await Booking.find(filter).lean();
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const getBookingsByVehicleType = asyncHandler(async (req, res) => {
+  const filter = { vehicleType: req.params.vehicleType, isDeleted: false };
+  applyUserScope(req, filter);
+  const data = await Booking.find(filter).lean();
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const getBookingsByPaymentMethod = asyncHandler(async (req, res) => {
+  const filter = { paymentMethod: req.params.method, isDeleted: false };
+  applyUserScope(req, filter);
+  const data = await Booking.find(filter).lean();
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const getBookingsByPickupLocation = asyncHandler(async (req, res) => {
+  const filter = { pickupLocation: req.params.location, isDeleted: false };
+  applyUserScope(req, filter);
+  const data = await Booking.find(filter).lean();
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const getBookingsByDropLocation = asyncHandler(async (req, res) => {
+  const filter = { dropLocation: req.params.location, isDeleted: false };
+  applyUserScope(req, filter);
+  const data = await Booking.find(filter).lean();
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const getBookingsByDate = asyncHandler(async (req, res) => {
+  const targetDate = new Date(req.params.date);
+  targetDate.setHours(0, 0, 0, 0);
+  const endDate = new Date(req.params.date);
+  endDate.setHours(23, 59, 59, 999);
+
+  const filter = { bookingDate: { $gte: targetDate, $lte: endDate }, isDeleted: false };
+  applyUserScope(req, filter);
+  const data = await Booking.find(filter).lean();
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const getBookingsByTime = asyncHandler(async (req, res) => {
+  const filter = { isDeleted: false };
+  applyUserScope(req, filter);
+  const data = await Booking.find(filter).lean();
+  const timeQuery = req.params.time; // expects HH:MM format
+  const matched = data.filter(doc => {
+    const formatted = doc.bookingDate.toISOString().substr(11, 5); // get HH:MM
+    return formatted === timeQuery;
+  });
+  return res.status(200).json({ success: true, count: matched.length, data: matched });
+});
+
+const getBookingsByDriverRating = asyncHandler(async (req, res) => {
+  const filter = { driverRating: parseFloat(req.params.rating), isDeleted: false };
+  applyUserScope(req, filter);
+  const data = await Booking.find(filter).lean();
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const getBookingsByCustomerRating = asyncHandler(async (req, res) => {
+  const filter = { customerRating: parseFloat(req.params.rating), isDeleted: false };
+  applyUserScope(req, filter);
+  const data = await Booking.find(filter).lean();
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const getBookingsByDistance = asyncHandler(async (req, res) => {
+  const filter = { distance: parseFloat(req.params.distance), isDeleted: false };
+  applyUserScope(req, filter);
+  const data = await Booking.find(filter).lean();
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const getBookingsByFareValue = asyncHandler(async (req, res) => {
+  const filter = { fare: parseFloat(req.params.amount), isDeleted: false };
+  applyUserScope(req, filter);
+  const data = await Booking.find(filter).lean();
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const getBookingsByIncompleteStatus = asyncHandler(async (req, res) => {
+  const filter = { isIncomplete: req.params.status, isDeleted: false };
+  applyUserScope(req, filter);
+  const data = await Booking.find(filter).lean();
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const getBookingsByIncompleteReason = asyncHandler(async (req, res) => {
+  const filter = { incompleteReason: req.params.reason, isDeleted: false };
+  applyUserScope(req, filter);
+  const data = await Booking.find(filter).lean();
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const getBookingsByCancelCustomerReason = asyncHandler(async (req, res) => {
+  const filter = { cancelledByCustomerReason: req.params.reason, isDeleted: false };
+  applyUserScope(req, filter);
+  const data = await Booking.find(filter).lean();
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const getBookingsByCancelDriverReason = asyncHandler(async (req, res) => {
+  const filter = { cancelledByDriverReason: req.params.reason, isDeleted: false };
+  applyUserScope(req, filter);
+  const data = await Booking.find(filter).lean();
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const getBookingsByVTAT = asyncHandler(async (req, res) => {
+  const filter = { vTat: parseInt(req.params.minutes, 10), isDeleted: false };
+  applyUserScope(req, filter);
+  const data = await Booking.find(filter).lean();
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const getBookingsByCTAT = asyncHandler(async (req, res) => {
+  const filter = { cTat: parseInt(req.params.minutes, 10), isDeleted: false };
+  applyUserScope(req, filter);
+  const data = await Booking.find(filter).lean();
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const getBookingsByDay = asyncHandler(async (req, res) => {
+  const filter = { isDeleted: false };
+  applyUserScope(req, filter);
+  filter.$expr = { $eq: [{ $dayOfMonth: "$bookingDate" }, parseInt(req.params.day, 10)] };
+  const data = await Booking.find(filter).lean();
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const getBookingsByMonth = asyncHandler(async (req, res) => {
+  const filter = { isDeleted: false };
+  applyUserScope(req, filter);
+  filter.$expr = { $eq: [{ $month: "$bookingDate" }, parseInt(req.params.month, 10)] };
+  const data = await Booking.find(filter).lean();
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const getBookingsByYear = asyncHandler(async (req, res) => {
+  const filter = { isDeleted: false };
+  applyUserScope(req, filter);
+  filter.$expr = { $eq: [{ $year: "$bookingDate" }, parseInt(req.params.year, 10)] };
+  const data = await Booking.find(filter).lean();
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const getBookingsByHour = asyncHandler(async (req, res) => {
+  const filter = { isDeleted: false };
+  applyUserScope(req, filter);
+  filter.$expr = { $eq: [{ $hour: "$bookingDate" }, parseInt(req.params.hour, 10)] };
+  const data = await Booking.find(filter).lean();
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const getBookingsByMinute = asyncHandler(async (req, res) => {
+  const filter = { isDeleted: false };
+  applyUserScope(req, filter);
+  filter.$expr = { $eq: [{ $minute: "$bookingDate" }, parseInt(req.params.minute, 10)] };
+  const data = await Booking.find(filter).lean();
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const getBookingsByPickupSource = asyncHandler(async (req, res) => {
+  const filter = { pickupLocation: { $regex: escapeRegex(req.params.pickup), $options: "i" }, isDeleted: false };
+  applyUserScope(req, filter);
+  const data = await Booking.find(filter).lean();
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const getBookingsByDestination = asyncHandler(async (req, res) => {
+  const filter = { dropLocation: { $regex: escapeRegex(req.params.drop), $options: "i" }, isDeleted: false };
+  applyUserScope(req, filter);
+  const data = await Booking.find(filter).lean();
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const getBookingsByVehicleImage = asyncHandler(async (req, res) => {
+  return res.status(200).json({ success: true, count: 0, data: [], message: "Vehicle images search mock return" });
+});
+
+const getBookingsByFare = asyncHandler(async (req, res) => {
+  const filter = { fare: parseFloat(req.params.value), isDeleted: false };
+  applyUserScope(req, filter);
+  const data = await Booking.find(filter).lean();
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const getCustomerBookingHistory = asyncHandler(async (req, res) => {
+  const filter = { customerId: req.params.customerId, isDeleted: false };
+  applyUserScope(req, filter);
+  const data = await Booking.find(filter).sort({ bookingDate: -1 }).lean();
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const getLatestCustomerBooking = asyncHandler(async (req, res) => {
+  const filter = { customerId: req.params.customerId, isDeleted: false };
+  applyUserScope(req, filter);
+  const booking = await Booking.findOne(filter).sort({ bookingDate: -1 }).lean();
+  if (!booking) return res.status(404).json({ success: false, message: "No bookings found for customer" });
+  return res.status(200).json({ success: true, data: booking });
+});
+
+// === ADVANCED GET CONTROLLERS ===
+
+const getTopHighestFareBookings = asyncHandler(async (req, res) => {
+  const filter = { isDeleted: false };
+  applyUserScope(req, filter);
+  const data = await Booking.find(filter).sort({ fare: -1 }).limit(10).lean();
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const getTopLowestFareBookings = asyncHandler(async (req, res) => {
+  const filter = { isDeleted: false };
+  applyUserScope(req, filter);
+  const data = await Booking.find(filter).sort({ fare: 1 }).limit(10).lean();
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const getRecentBookings = asyncHandler(async (req, res) => {
+  const filter = { isDeleted: false };
+  applyUserScope(req, filter);
+  const data = await Booking.find(filter).sort({ bookingDate: -1 }).limit(10).lean();
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const getLatestBookings = asyncHandler(async (req, res) => {
+  const filter = { isDeleted: false };
+  applyUserScope(req, filter);
+  const data = await Booking.find(filter).sort({ bookingDate: -1 }).limit(5).lean();
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const getRandomBookings = asyncHandler(async (req, res) => {
+  const match = { isDeleted: false };
+  if (req.user && req.user.role !== "admin") {
+    match.userId = req.user._id;
   }
-};
+  const data = await Booking.aggregate([
+    { $match: match },
+    { $sample: { size: 5 } }
+  ]);
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const getTrendingBookings = asyncHandler(async (req, res) => {
+  const filter = { bookingStatus: { $in: ["Success", "confirmed", "completed"] }, isDeleted: false };
+  applyUserScope(req, filter);
+  const data = await Booking.find(filter).sort({ bookingDate: -1 }).limit(10).lean();
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const getSuccessBookings = asyncHandler(async (req, res) => {
+  const filter = { bookingStatus: "Success", isDeleted: false };
+  applyUserScope(req, filter);
+  const data = await Booking.find(filter).lean();
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const getCancelledBookings = asyncHandler(async (req, res) => {
+  const filter = { bookingStatus: { $in: ["Canceled by Customer", "Canceled by Driver"] }, isDeleted: false };
+  applyUserScope(req, filter);
+  const data = await Booking.find(filter).lean();
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const getIncompleteBookings = asyncHandler(async (req, res) => {
+  const filter = { isIncomplete: "Yes", isDeleted: false };
+  applyUserScope(req, filter);
+  const data = await Booking.find(filter).lean();
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const getDriverNotFoundBookings = asyncHandler(async (req, res) => {
+  const filter = { bookingStatus: "Driver Not Found", isDeleted: false };
+  applyUserScope(req, filter);
+  const data = await Booking.find(filter).lean();
+  return res.status(200).json({ success: true, count: data.length, data });
+});
+
+const compareBookings = asyncHandler(async (req, res) => {
+  const { booking1, booking2 } = req.query;
+  if (!booking1 || !booking2) {
+    return res.status(400).json({ success: false, message: "booking1 and booking2 query parameters are required" });
+  }
+
+  const [b1, b2] = await Promise.all([
+    Booking.findOne({ bookingId: booking1, isDeleted: false }).lean(),
+    Booking.findOne({ bookingId: booking2, isDeleted: false }).lean()
+  ]);
+
+  if (!b1 || !b2) {
+    return res.status(404).json({ success: false, message: "One or both bookings were not found" });
+  }
+
+  return res.status(200).json({
+    success: true,
+    data: { booking1: b1, booking2: b2, diff: { fareDiff: b1.fare - b2.fare, distanceDiff: b1.distance - b2.distance } }
+  });
+});
+
+const getAISummary = asyncHandler(async (req, res) => {
+  const total = await Booking.countDocuments({ isDeleted: false });
+  const success = await Booking.countDocuments({ bookingStatus: "Success", isDeleted: false });
+  const cancelled = await Booking.countDocuments({ bookingStatus: { $in: ["Canceled by Driver", "Canceled by Customer"] }, isDeleted: false });
+
+  const aiText = `Out of ${total} total bookings, ${success} rides were successfully completed, while ${cancelled} bookings were cancelled. The platform continues to optimize vehicle allocations and matching times.`;
+  return res.status(200).json({ success: true, summary: aiText });
+});
+
+// === EXTRA PATCH UPDATE CONTROLLERS ===
+
+const updateBookingPayment = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { paymentMethod, paymentStatus } = req.body;
+  const filter = { _id: id, isDeleted: false };
+  applyUserScope(req, filter);
+
+  const updated = await Booking.findOneAndUpdate(
+    filter,
+    { paymentMethod, paymentStatus },
+    { new: true, runValidators: true }
+  );
+  if (!updated) return res.status(404).json({ success: false, message: "Booking not found" });
+  return res.status(200).json({ success: true, message: "Payment updated", data: updated });
+});
+
+const updateBookingRating = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { driverRating, customerRating, rating } = req.body;
+  const filter = { _id: id, isDeleted: false };
+  applyUserScope(req, filter);
+
+  const updated = await Booking.findOneAndUpdate(
+    filter,
+    { driverRating, customerRating, rating },
+    { new: true, runValidators: true }
+  );
+  if (!updated) return res.status(404).json({ success: false, message: "Booking not found" });
+  return res.status(200).json({ success: true, message: "Ratings updated", data: updated });
+});
+
+const updateBookingFare = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { fare } = req.body;
+  const filter = { _id: id, isDeleted: false };
+  applyUserScope(req, filter);
+
+  const updated = await Booking.findOneAndUpdate(
+    filter,
+    { fare: parseFloat(fare) },
+    { new: true, runValidators: true }
+  );
+  if (!updated) return res.status(404).json({ success: false, message: "Booking not found" });
+  return res.status(200).json({ success: true, message: "Fare updated", data: updated });
+});
+
+const updateBookingDistance = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { distance } = req.body;
+  const filter = { _id: id, isDeleted: false };
+  applyUserScope(req, filter);
+
+  const updated = await Booking.findOneAndUpdate(
+    filter,
+    { distance: parseFloat(distance) },
+    { new: true, runValidators: true }
+  );
+  if (!updated) return res.status(404).json({ success: false, message: "Booking not found" });
+  return res.status(200).json({ success: true, message: "Distance updated", data: updated });
+});
+
+const updateBookingLocation = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { pickupLocation, dropLocation } = req.body;
+  const filter = { _id: id, isDeleted: false };
+  applyUserScope(req, filter);
+
+  const updated = await Booking.findOneAndUpdate(
+    filter,
+    { pickupLocation, dropLocation },
+    { new: true, runValidators: true }
+  );
+  if (!updated) return res.status(404).json({ success: false, message: "Booking not found" });
+  return res.status(200).json({ success: true, message: "Locations updated", data: updated });
+});
+
+// === BULK AND CLEAN SLATE OPERATIONS ===
+
+const bulkInsertBookings = asyncHandler(async (req, res) => {
+  const { bookings } = req.body;
+  if (!bookings || !Array.isArray(bookings)) {
+    return res.status(400).json({ success: false, message: "bookings array is required" });
+  }
+
+  const mapped = bookings.map((b) => ({
+    ...b,
+    userId: req.user ? req.user._id : null,
+    isDeleted: false
+  }));
+
+  const inserted = await Booking.insertMany(mapped);
+  return res.status(201).json({ success: true, count: inserted.length, message: "Bulk bookings inserted successfully" });
+});
+
+const deleteAllBookings = asyncHandler(async (req, res) => {
+  const filter = {};
+  applyUserScope(req, filter);
+  await Booking.deleteMany(filter);
+  return res.status(200).json({ success: true, message: "Bookings collection cleared" });
+});
+
+const deleteCancelledRides = asyncHandler(async (req, res) => {
+  const filter = { bookingStatus: { $in: ["Canceled by Driver", "Canceled by Customer"] } };
+  applyUserScope(req, filter);
+  const result = await Booking.deleteMany(filter);
+  return res.status(200).json({ success: true, count: result.deletedCount, message: "Cancelled rides deleted successfully" });
+});
+
+// Helper regex escape function
+const escapeRegex = (string) => string.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
 
 module.exports = {
   createBooking,
@@ -855,8 +729,62 @@ module.exports = {
   updateBookingStatus,
   deleteBooking,
   softDeleteBooking,
+  
+  // Custom GET param routes
+  getBookingByCustomId,
   getBookingsByStatus,
-  getBookingsByVehicleType,
   getBookingsByCustomer,
-  getBookingsByPaymentMethod
+  getBookingsByVehicleType,
+  getBookingsByPaymentMethod,
+  getBookingsByPickupLocation,
+  getBookingsByDropLocation,
+  getBookingsByDate,
+  getBookingsByTime,
+  getBookingsByDriverRating,
+  getBookingsByCustomerRating,
+  getBookingsByDistance,
+  getBookingsByFareValue,
+  getBookingsByIncompleteStatus,
+  getBookingsByIncompleteReason,
+  getBookingsByCancelCustomerReason,
+  getBookingsByCancelDriverReason,
+  getBookingsByVTAT,
+  getBookingsByCTAT,
+  getBookingsByDay,
+  getBookingsByMonth,
+  getBookingsByYear,
+  getBookingsByHour,
+  getBookingsByMinute,
+  getBookingsByPickupSource,
+  getBookingsByDestination,
+  getBookingsByVehicleImage,
+  getBookingsByFare,
+  getCustomerBookingHistory,
+  getLatestCustomerBooking,
+  
+  // Advanced GET routes
+  getTopHighestFareBookings,
+  getTopLowestFareBookings,
+  getRecentBookings,
+  getLatestBookings,
+  getRandomBookings,
+  getTrendingBookings,
+  getSuccessBookings,
+  getCancelledBookings,
+  getIncompleteBookings,
+  getDriverNotFoundBookings,
+  compareBookings,
+  getAISummary,
+  
+  // Extra updates
+  updateBookingPayment,
+  updateBookingRating,
+  updateBookingFare,
+  updateBookingDistance,
+  updateBookingLocation,
+  
+  // Bulk and delete operations
+  bulkInsertBookings,
+  deleteAllBookings,
+  deleteCancelledRides,
 };

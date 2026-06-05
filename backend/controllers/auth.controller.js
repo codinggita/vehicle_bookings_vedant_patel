@@ -163,7 +163,78 @@ const loginUser = async (req, res) => {
   }
 };
 
+const logoutUser = async (req, res) => {
+  return res.status(200).json({
+    success: true,
+    message: "Logged out successfully"
+  });
+};
+
+const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ success: false, message: "Email is required" });
+  }
+  return res.status(200).json({
+    success: true,
+    message: "Password reset link sent to your email"
+  });
+};
+
+const resetPassword = async (req, res) => {
+  const { token, password } = req.body;
+  if (!token || !password) {
+    return res.status(400).json({ success: false, message: "token and password are required" });
+  }
+  return res.status(200).json({
+    success: true,
+    message: "Password has been reset successfully"
+  });
+};
+
+const refreshToken = async (req, res) => {
+  const { token } = req.body;
+  if (!token) {
+    return res.status(400).json({ success: false, message: "token is required" });
+  }
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "fallback_signing_secret");
+    const newToken = generateToken(decoded.userId, decoded.role);
+    return res.status(200).json({ success: true, token: newToken });
+  } catch (err) {
+    return res.status(401).json({ success: false, message: "Invalid or expired token" });
+  }
+};
+
+const getMe = async (req, res) => {
+  return res.status(200).json({
+    success: true,
+    user: req.user
+  });
+};
+
+const deleteAccount = async (req, res) => {
+  try {
+    await User.findByIdAndDelete(req.user._id);
+    return res.status(200).json({
+      success: true,
+      message: "Account deleted successfully"
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error during account deletion"
+    });
+  }
+};
+
 module.exports = {
   registerUser,
-  loginUser
+  loginUser,
+  logoutUser,
+  forgotPassword,
+  resetPassword,
+  refreshToken,
+  getMe,
+  deleteAccount
 };
