@@ -19,7 +19,7 @@ app.use(express.urlencoded({ extended: true }));
 // 3. Configure Security Middlewares - CORS
 app.use(
   cors({
-    origin: process.env.NODE_ENV === "production" ? process.env.CLIENT_URL : "*",
+    origin: process.env.NODE_ENV === "production" ? process.env.CLIENT_URL : true,
     credentials: true
   })
 );

@@ -71,7 +71,7 @@ const getFilterConfig = (query = {}) => {
 
   if (query.vehicleType !== undefined && query.vehicleType !== "") {
     const sanitizedVehicle = sanitizeString(query.vehicleType, true);
-    const allowedVehicles = ["sedan", "suv", "hatchback", "luxury", "mini", "plus", "bike", "ebike", "auto"];
+    const allowedVehicles = ["sedan", "suv", "hatchback", "luxury"];
     if (sanitizedVehicle && allowedVehicles.includes(sanitizedVehicle)) {
       filter.vehicleType = sanitizedVehicle;
     }
@@ -236,6 +236,7 @@ const createBooking = async (req, res) => {
 
     // 4. Create and save document in MongoDB using Mongoose schema
     const newBooking = new Booking({
+      userId: req.user ? req.user._id : (req.body.userId || null),
       customerName: cleanedCustomerName,
       customerPhone: cleanedCustomerPhone,
       vehicleType: cleanedVehicleType,
@@ -295,6 +296,11 @@ const getAllBookings = async (req, res) => {
     // 3. Combined query configuration (always including soft delete awareness)
     const query = { ...filter, ...search, isDeleted: false };
 
+    // Restrict regular users to their own bookings
+    if (req.user && req.user.role !== "admin") {
+      query.userId = req.user._id;
+    }
+
     // 4. Run queries in parallel for optimal database performance (using .lean() for read-only optimization)
     const [totalBookings, bookings] = await Promise.all([
       Booking.countDocuments(query),
@@ -343,7 +349,11 @@ const getBookingById = async (req, res) => {
     }
 
     // 2. Query MongoDB, excluding soft-deleted records (using .lean() for read-only optimization)
-    const booking = await Booking.findOne({ _id: id, isDeleted: false }).lean();
+    const query = { _id: id, isDeleted: false };
+    if (req.user && req.user.role !== "admin") {
+      query.userId = req.user._id;
+    }
+    const booking = await Booking.findOne(query).lean();
 
     // 3. Return 404 if document does not exist
     if (!booking) {
@@ -393,7 +403,11 @@ const updateBooking = async (req, res) => {
     }
 
     // 3. Soft Delete Awareness: Verify booking exists and is not deleted
-    const existingBooking = await Booking.findOne({ _id: id, isDeleted: false });
+    const query = { _id: id, isDeleted: false };
+    if (req.user && req.user.role !== "admin") {
+      query.userId = req.user._id;
+    }
+    const existingBooking = await Booking.findOne(query);
     if (!existingBooking) {
       return res.status(404).json({
         success: false,
@@ -519,7 +533,11 @@ const updateBookingStatus = async (req, res) => {
     }
 
     // 4. Soft Delete Awareness: Verify booking exists and is not deleted
-    const existingBooking = await Booking.findOne({ _id: id, isDeleted: false });
+    const query = { _id: id, isDeleted: false };
+    if (req.user && req.user.role !== "admin") {
+      query.userId = req.user._id;
+    }
+    const existingBooking = await Booking.findOne(query);
     if (!existingBooking) {
       return res.status(404).json({
         success: false,
@@ -572,7 +590,11 @@ const deleteBooking = async (req, res) => {
     }
 
     // 2. Perform permanent database deletion
-    const deletedBooking = await Booking.findByIdAndDelete(id);
+    const query = { _id: id };
+    if (req.user && req.user.role !== "admin") {
+      query.userId = req.user._id;
+    }
+    const deletedBooking = await Booking.findOneAndDelete(query);
 
     // 3. Return 404 if booking not found
     if (!deletedBooking) {
@@ -614,7 +636,11 @@ const softDeleteBooking = async (req, res) => {
     }
 
     // 2. Find booking to check state and existence
-    const booking = await Booking.findById(id);
+    const query = { _id: id };
+    if (req.user && req.user.role !== "admin") {
+      query.userId = req.user._id;
+    }
+    const booking = await Booking.findOne(query);
     if (!booking) {
       return res.status(404).json({
         success: false,
@@ -669,7 +695,11 @@ const getBookingsByStatus = async (req, res) => {
     }
 
     // 2. Query MongoDB, excluding soft deleted records (using .lean() for read-only optimization)
-    const bookings = await Booking.find({ bookingStatus: sanitizedStatus, isDeleted: false }).lean();
+    const query = { bookingStatus: sanitizedStatus, isDeleted: false };
+    if (req.user && req.user.role !== "admin") {
+      query.userId = req.user._id;
+    }
+    const bookings = await Booking.find(query).lean();
 
     // 3. Return RESTful response
     return res.status(200).json({
@@ -697,7 +727,7 @@ const getBookingsByVehicleType = async (req, res) => {
 
     // 1. Sanitize and validate vehicle type
     const sanitizedVehicle = sanitizeString(vehicleType, true);
-    const allowedVehicles = ["sedan", "suv", "hatchback", "luxury", "mini", "plus", "bike", "ebike", "auto"];
+    const allowedVehicles = ["sedan", "suv", "hatchback", "luxury"];
 
     if (!sanitizedVehicle || !allowedVehicles.includes(sanitizedVehicle)) {
       return res.status(400).json({
@@ -707,7 +737,11 @@ const getBookingsByVehicleType = async (req, res) => {
     }
 
     // 2. Query MongoDB, excluding soft deleted records (using .lean() for read-only optimization)
-    const bookings = await Booking.find({ vehicleType: sanitizedVehicle, isDeleted: false }).lean();
+    const query = { vehicleType: sanitizedVehicle, isDeleted: false };
+    if (req.user && req.user.role !== "admin") {
+      query.userId = req.user._id;
+    }
+    const bookings = await Booking.find(query).lean();
 
     // 3. Return RESTful response
     return res.status(200).json({
@@ -748,10 +782,14 @@ const getBookingsByCustomer = async (req, res) => {
     const escapedCustomer = escapeRegex(sanitizedCustomer);
 
     // Query MongoDB with case-insensitive partial match (using .lean() for read-only optimization)
-    const bookings = await Booking.find({
+    const query = {
       customerName: { $regex: escapedCustomer, $options: "i" },
       isDeleted: false
-    }).lean();
+    };
+    if (req.user && req.user.role !== "admin") {
+      query.userId = req.user._id;
+    }
+    const bookings = await Booking.find(query).lean();
 
     return res.status(200).json({
       success: true,
@@ -788,7 +826,11 @@ const getBookingsByPaymentMethod = async (req, res) => {
     }
 
     // Query MongoDB, excluding soft deleted records (using .lean() for read-only optimization)
-    const bookings = await Booking.find({ paymentMethod: sanitizedMethod, isDeleted: false }).lean();
+    const query = { paymentMethod: sanitizedMethod, isDeleted: false };
+    if (req.user && req.user.role !== "admin") {
+      query.userId = req.user._id;
+    }
+    const bookings = await Booking.find(query).lean();
 
     return res.status(200).json({
       success: true,

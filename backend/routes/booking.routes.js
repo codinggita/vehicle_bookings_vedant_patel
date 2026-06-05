@@ -19,22 +19,22 @@ const { protect } = require("../middlewares/auth.middleware");
 router.post("/", protect, createBooking);
 
 // GET /api/v1/bookings
-router.get("/", getAllBookings);
+router.get("/", protect, getAllBookings);
 
 // GET /api/v1/bookings/status/:status
-router.get("/status/:status", getBookingsByStatus);
+router.get("/status/:status", protect, getBookingsByStatus);
 
 // GET /api/v1/bookings/vehicle/:vehicleType
-router.get("/vehicle/:vehicleType", getBookingsByVehicleType);
+router.get("/vehicle/:vehicleType", protect, getBookingsByVehicleType);
 
 // GET /api/v1/bookings/customer/:customerName
-router.get("/customer/:customerName", getBookingsByCustomer);
+router.get("/customer/:customerName", protect, getBookingsByCustomer);
 
 // GET /api/v1/bookings/payment/:paymentMethod
-router.get("/payment/:paymentMethod", getBookingsByPaymentMethod);
+router.get("/payment/:paymentMethod", protect, getBookingsByPaymentMethod);
 
 // GET /api/v1/bookings/:id
-router.get("/:id", getBookingById);
+router.get("/:id", protect, getBookingById);
 
 // PUT /api/v1/bookings/:id
 router.put("/:id", protect, updateBooking);
