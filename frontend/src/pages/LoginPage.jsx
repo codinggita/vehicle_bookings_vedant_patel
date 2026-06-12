@@ -1,1 +1,6 @@
-// Placeholder for LoginPage.jsx
+const LoginPage = () => {
+  return <h1>Login Page</h1>;
+};
+
+export default LoginPage;
+
