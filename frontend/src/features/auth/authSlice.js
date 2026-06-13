@@ -6,8 +6,8 @@ let storedUser = null;
 try {
   const parsedUser = localStorage.getItem('user');
   storedUser = parsedUser ? JSON.parse(parsedUser) : null;
-} catch (e) {
-  console.error('Error parsing stored user data from localStorage', e);
+} catch {
+  // If parsing fails, remove the corrupted data
   localStorage.removeItem('user');
 }
 
@@ -15,7 +15,8 @@ const initialState = {
   user: storedUser,
   token: storedToken,
   isAuthenticated: !!storedToken,
-  loading: false,
+  // Start loading as true if token is present to allow validation without UI flashes
+  loading: !!storedToken,
   error: null,
 };
 
@@ -23,6 +24,23 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
+    initializeAuth(state) {
+      state.loading = true;
+      state.error = null;
+    },
+    restoreSession(state, action) {
+      const { user, token } = action.payload || {};
+      state.user = user || null;
+      state.token = token || null;
+      state.isAuthenticated = !!token;
+      state.loading = false;
+      state.error = null;
+
+      if (token) {
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user || null));
+      }
+    },
     setCredentials(state, action) {
       const { user, token } = action.payload || {};
       state.user = user || null;
@@ -65,6 +83,8 @@ const authSlice = createSlice({
 });
 
 export const {
+  initializeAuth,
+  restoreSession,
   setCredentials,
   logout,
   setLoading,
