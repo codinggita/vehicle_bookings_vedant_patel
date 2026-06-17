@@ -1,6 +1,6 @@
 import { useFormik } from 'formik';
 import { useDispatch, useSelector } from 'react-redux';
-import toast from 'react-hot-toast';
+import notificationService from '@components/notifications/notificationService';
 import { updateDataset } from '../store/datasetThunks';
 import { datasetValidationSchema } from '../validations/datasetValidation';
 import DatasetForm from './DatasetForm';
@@ -56,13 +56,13 @@ const EditDatasetModal = ({ isOpen, onClose }) => {
         );
 
         if (updateDataset.fulfilled.match(resultAction)) {
-          toast.success('Dataset Updated Successfully');
+          notificationService.showSuccess('Dataset Updated Successfully');
           onClose();
         } else {
-          toast.error(resultAction.payload || 'Failed To Update Dataset');
+          notificationService.showError(resultAction.payload || 'Failed To Update Dataset');
         }
       } catch {
-        toast.error('Failed To Update Dataset');
+        notificationService.showError('Failed To Update Dataset');
       } finally {
         setSubmitting(false);
       }

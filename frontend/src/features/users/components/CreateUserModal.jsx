@@ -1,6 +1,6 @@
 import { useDispatch } from 'react-redux';
 import { useFormik } from 'formik';
-import toast from 'react-hot-toast';
+import notificationService from '@components/notifications/notificationService';
 import { addUser } from '../store/userThunks';
 import { createUserSchema } from '../validations/userValidation';
 import UserForm from './UserForm';
@@ -40,14 +40,14 @@ const CreateUserModal = ({ isOpen, onClose }) => {
         }));
 
         if (addUser.fulfilled.match(resultAction)) {
-          toast.success('User Created Successfully');
+          notificationService.showSuccess('User Created Successfully');
           resetForm();
           onClose();
         } else {
-          toast.error(resultAction.payload || 'Failed To Create User');
+          notificationService.showError(resultAction.payload || 'Failed To Create User');
         }
       } catch {
-        toast.error('An error occurred while creating user');
+        notificationService.showError('An error occurred while creating user');
       } finally {
         setSubmitting(false);
       }

@@ -1,6 +1,6 @@
 import { useDispatch } from 'react-redux';
 import { useFormik } from 'formik';
-import toast from 'react-hot-toast';
+import notificationService from '@components/notifications/notificationService';
 import { modifyUser } from '../store/userThunks';
 import { editUserSchema } from '../validations/userValidation';
 import UserForm from './UserForm';
@@ -47,13 +47,13 @@ const EditUserModal = ({ isOpen, onClose, user }) => {
         }));
 
         if (modifyUser.fulfilled.match(resultAction)) {
-          toast.success('User Updated Successfully');
+          notificationService.showSuccess('User Updated Successfully');
           onClose();
         } else {
-          toast.error(resultAction.payload || 'Failed To Update User');
+          notificationService.showError(resultAction.payload || 'Failed To Update User');
         }
       } catch {
-        toast.error('An error occurred while updating user');
+        notificationService.showError('An error occurred while updating user');
       } finally {
         setSubmitting(false);
       }

@@ -1,5 +1,5 @@
 import { useDispatch } from 'react-redux';
-import toast from 'react-hot-toast';
+import notificationService from '@components/notifications/notificationService';
 import { updateProfile } from '../store/profileThunks';
 import { profileValidationSchema } from '../validations/profileValidation';
 import DynamicForm from '@features/forms/components/DynamicForm';
@@ -26,13 +26,13 @@ const ProfileForm = ({ profile, onCancel }) => {
     try {
       const resultAction = await dispatch(updateProfile(values));
       if (updateProfile.fulfilled.match(resultAction)) {
-        toast.success('Profile Updated Successfully');
+        notificationService.showSuccess('Profile Updated Successfully');
         onCancel(); // exit edit mode
       } else {
-        toast.error(resultAction.payload || 'Failed To Update Profile');
+        notificationService.showError(resultAction.payload || 'Failed To Update Profile');
       }
     } catch {
-      toast.error('Failed To Update Profile');
+      notificationService.showError('Failed To Update Profile');
     } finally {
       setSubmitting(false);
     }

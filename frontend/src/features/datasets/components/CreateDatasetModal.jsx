@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useFormik } from 'formik';
 import { useDispatch } from 'react-redux';
-import toast from 'react-hot-toast';
+import notificationService from '@components/notifications/notificationService';
 import { createDataset } from '../store/datasetThunks';
 import { datasetValidationSchema } from '../validations/datasetValidation';
 import DatasetForm from './DatasetForm';
@@ -45,14 +45,14 @@ const CreateDatasetModal = ({ isOpen, onClose }) => {
         const resultAction = await dispatch(createDataset(values));
         
         if (createDataset.fulfilled.match(resultAction)) {
-          toast.success('Dataset Created Successfully');
+          notificationService.showSuccess('Dataset Created Successfully');
           resetForm();
           onClose();
         } else {
-          toast.error(resultAction.payload || 'Failed To Create Dataset');
+          notificationService.showError(resultAction.payload || 'Failed To Create Dataset');
         }
       } catch {
-        toast.error('Failed To Create Dataset');
+        notificationService.showError('Failed To Create Dataset');
       } finally {
         setSubmitting(false);
       }

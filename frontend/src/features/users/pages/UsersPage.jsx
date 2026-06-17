@@ -81,6 +81,7 @@ const UsersPage = () => {
         error={error}
         onEdit={handleEditClick}
         onDelete={handleDeleteClick}
+        onRetry={fetchUsers}
       />
 
       {/* 4. Pagination System */}

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import toast from 'react-hot-toast';
+import notificationService from '@components/notifications/notificationService';
 import { removeUser } from '../store/userThunks';
 
 /**
@@ -24,15 +24,15 @@ const DeleteUserDialog = ({ isOpen, onClose, user }) => {
       const resultAction = await dispatch(removeUser(user._id));
 
       if (removeUser.fulfilled.match(resultAction)) {
-        toast.success('User Deleted Successfully');
+        notificationService.showSuccess('User Deleted Successfully');
         onClose();
       } else {
         // payload may contain rejection structure
         const errMsg = resultAction.payload?.message || 'Failed To Delete User';
-        toast.error(errMsg);
+        notificationService.showError(errMsg);
       }
     } catch {
-      toast.error('An error occurred while deleting user.');
+      notificationService.showError('An error occurred while deleting user.');
     } finally {
       setIsDeleting(false);
     }

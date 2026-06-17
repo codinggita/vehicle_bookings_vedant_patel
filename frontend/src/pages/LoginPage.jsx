@@ -3,7 +3,7 @@ import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import toast from 'react-hot-toast';
+import notificationService from '@components/notifications/notificationService';
 import { login } from '@services/authService';
 import { setCredentials } from '@features/auth/authSlice';
 import { ROUTES } from '../routes/routeConfig';
@@ -40,7 +40,7 @@ const LoginPage = () => {
             token: response.token,
           }));
 
-          toast.success(`Welcome back, ${response.user.name || 'User'}!`);
+          notificationService.showSuccess(`Welcome back, ${response.user.name || 'User'}!`);
 
           // Role-based redirection logic
           if (response.user.role === 'admin') {
@@ -49,14 +49,14 @@ const LoginPage = () => {
             navigate(ROUTES.USER);
           }
         } else {
-          toast.error(response?.message || 'Authentication failed. Please try again.');
+          notificationService.showError(response?.message || 'Authentication failed. Please try again.');
         }
       } catch (error) {
         const errorMessage =
           error.response?.data?.message ||
           error.message ||
           'Connection to server failed. Please try again.';
-        toast.error(errorMessage);
+        notificationService.showError(errorMessage);
       } finally {
         setSubmitting(false);
       }

@@ -1,7 +1,7 @@
 
 import { useDispatch, useSelector } from 'react-redux';
 import { setThemeState } from '../store/settingsSlice';
-import toast from 'react-hot-toast';
+import notificationService from '@components/notifications/notificationService';
 
 /**
  * ThemeSettings Component
@@ -17,9 +17,9 @@ const ThemeSettings = () => {
     if (mode === 'system') {
       const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
       targetMode = prefersDark ? 'dark' : 'light';
-      toast.success('Synced theme with system settings!');
+      notificationService.showSuccess('Synced theme with system settings!');
     } else {
-      toast.success(`Theme switched to ${mode === 'dark' ? 'Dark' : 'Light'} Mode!`);
+      notificationService.showSuccess(`Theme switched to ${mode === 'dark' ? 'Dark' : 'Light'} Mode!`);
     }
 
     dispatch(setThemeState(targetMode));
