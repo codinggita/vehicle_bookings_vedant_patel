@@ -1,5 +1,6 @@
 import axios from 'axios';
 import storage from '@utils/storage';
+import { handleApiError } from '@utils/errorHandler';
 
 // Centralized Axios instance configuration
 const API = axios.create({
@@ -33,25 +34,11 @@ API.interceptors.request.use(
 
 /**
  * Response Interceptor for Global Error Handling
- * Captures 401 Unauthorized errors (expired or invalid token),
- * wipes stale credentials, and handles route redirection to login.
+ * Delegates error parsing, notifications, and token clearups to handleApiError.
  */
 API.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response && error.response.status === 401) {
-      // Clear authenticated credentials from local storage
-      storage.removeItem('token');
-      storage.removeItem('user');
-      storage.removeItem('refreshToken');
-      
-      // Redirect to login if not already there, with expired parameter
-      if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
-        window.location.href = '/login?expired=true';
-      }
-    }
-    return Promise.reject(error);
-  }
+  handleApiError
 );
 
 export default API;
