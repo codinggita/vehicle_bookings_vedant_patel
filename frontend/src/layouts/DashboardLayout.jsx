@@ -1,34 +1,42 @@
-import Navbar from '@components/Navbar';
-import Sidebar from '@components/Sidebar';
+import { useState } from 'react';
+import { Outlet } from 'react-router-dom';
+import Sidebar from '@components/navigation/Sidebar';
+import Navbar from '@components/navigation/Navbar';
+import MainContent from '@components/layout/MainContent';
 
 /**
- * Layout wrapper for authenticated dashboard routes.
- * Integrates Sidebar, Navbar, and scrollable container.
+ * DashboardLayout Component
+ * Serves as the primary layout shell for authenticated dashboard pages.
+ * Integrates Sidebar navigation, Top Header Navbar, and Main Content viewport.
+ * 
+ * @param {Object} props
+ * @param {React.ReactNode} [props.children] - Page content if not using nested routes
  */
-export default function DashboardLayout({ children }) {
+const DashboardLayout = ({ children }) => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   return (
-    <div className="flex h-screen bg-slate-950 text-slate-100 font-sans overflow-hidden relative">
-      {/* Background Decorative Gradients */}
-      <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-indigo-500/5 rounded-full blur-[120px] pointer-events-none z-0" />
-      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-violet-600/5 rounded-full blur-[120px] pointer-events-none z-0" />
+    <div className="flex h-screen w-screen overflow-hidden bg-slate-950 text-slate-100 font-sans antialiased">
+      {/* Sidebar Drawer Navigation */}
+      <Sidebar 
+        isOpen={isSidebarOpen} 
+        onClose={() => setIsSidebarOpen(false)} 
+      />
 
-      {/* Left Sidebar */}
-      <div className="hidden md:block h-full z-10">
-        <Sidebar />
-      </div>
+      {/* Right Side Workstation */}
+      <div className="flex flex-col flex-1 min-w-0 h-full overflow-hidden">
+        {/* Navigation Header */}
+        <Navbar 
+          onMenuClick={() => setIsSidebarOpen(true)} 
+        />
 
-      {/* Main Wrapper */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden z-10 relative">
-        {/* Navbar */}
-        <Navbar />
-
-        {/* Dynamic Content Panel */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-slate-950/40 p-6 md:p-8">
-          <div className="max-w-7xl mx-auto">
-            {children}
-          </div>
-        </main>
+        {/* Dynamic Page Content Viewport */}
+        <MainContent>
+          {children || <Outlet />}
+        </MainContent>
       </div>
     </div>
   );
-}
+};
+
+export default DashboardLayout;

@@ -36,52 +36,39 @@ const AppRoutes = () => {
         }
       />
 
-      {/* Protected routes (requires authentication) */}
+      {/* Protected routes (requires authentication & wrapped in DashboardLayout) */}
       <Route
-        path={ROUTES.PROFILE}
         element={
           <ProtectedRoute>
-            <DashboardLayout>
-              <ProfilePage />
-            </DashboardLayout>
+            <DashboardLayout />
           </ProtectedRoute>
         }
-      />
-      <Route
-        path={ROUTES.SETTINGS}
-        element={
-          <ProtectedRoute>
-            <DashboardLayout>
-              <SettingsPage />
-            </DashboardLayout>
-          </ProtectedRoute>
-        }
-      />
+      >
+        <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
+        <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
 
-      {/* Role-based protected routes */}
-      <Route
-        path={ROUTES.ADMIN}
-        element={
-          <RoleBasedRoute allowedRoles={['admin']}>
-            <DashboardLayout>
+        {/* Role-based protected routes */}
+        <Route
+          path={ROUTES.ADMIN}
+          element={
+            <RoleBasedRoute allowedRoles={['admin']}>
               <AdminPage />
-            </DashboardLayout>
-          </RoleBasedRoute>
-        }
-      />
-      <Route
-        path={ROUTES.USER}
-        element={
-          <RoleBasedRoute allowedRoles={['user', 'admin']}>
-            <DashboardLayout>
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.USER}
+          element={
+            <RoleBasedRoute allowedRoles={['user', 'admin']}>
               <UserPage />
-            </DashboardLayout>
-          </RoleBasedRoute>
-        }
-      />
+            </RoleBasedRoute>
+          }
+        />
+      </Route>
     </Routes>
   );
 };
 
 export default AppRoutes;
+
 
