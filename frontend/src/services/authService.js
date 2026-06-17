@@ -1,4 +1,4 @@
-import API from './axios';
+import API from './api';
 
 /**
  * Calls the backend profile retrieval endpoint.

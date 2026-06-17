@@ -1,20 +1,29 @@
 import axios from 'axios';
 import storage from '@utils/storage';
 
+// Centralized Axios instance configuration
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1',
+  timeout: 10000, // 10 seconds timeout limit
   headers: {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
   },
 });
 
-// Request interceptor to automatically attach authorization token to outgoing requests
+/**
+ * Request Interceptor for JWT Injection
+ * Automatically retrieves the latest token from storage and injects it
+ * into the Authorization header of protected outgoing API requests.
+ */
 API.interceptors.request.use(
   (config) => {
     const token = storage.getItem('token');
+    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
     return config;
   },
   (error) => {
@@ -22,7 +31,11 @@ API.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle token expiration/validation failures
+/**
+ * Response Interceptor for Global Error Handling
+ * Captures 401 Unauthorized errors (expired or invalid token),
+ * wipes stale credentials, and handles route redirection to login.
+ */
 API.interceptors.response.use(
   (response) => response,
   (error) => {
