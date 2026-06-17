@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
-import { Toaster } from 'react-hot-toast';
+import NotificationProvider from '@components/notifications/NotificationProvider';
 import { BrowserRouter } from 'react-router-dom';
 
 import { AppRoutes } from '@routes';
@@ -78,11 +78,11 @@ function App() {
         
         <AuthInitializer>
           <MuiThemeProvider>
-            <AppRoutes />
+            <NotificationProvider>
+              <AppRoutes />
+            </NotificationProvider>
           </MuiThemeProvider>
         </AuthInitializer>
-
-        <Toaster position="bottom-right" />
       </BrowserRouter>
     </HelmetProvider>
   );
