@@ -1,3 +1,5 @@
+import React from 'react';
+
 /**
  * AnalyticsCard Component
  * Displays a single key business metric with an icon and loading state support.
@@ -8,7 +10,7 @@
  * @param {React.ReactNode} props.icon - Icon element representing the card's purpose
  * @param {boolean} [props.loading=false] - Triggers skeleton pulse loading state
  */
-const AnalyticsCard = ({ title, value, icon, loading = false }) => {
+const AnalyticsCard = React.memo(({ title, value, icon, loading = false }) => {
   return (
     <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-6 flex items-center justify-between shadow-xl transition-all duration-300 hover:border-indigo-500/30 hover:shadow-indigo-500/5 hover:-translate-y-0.5 group">
       
@@ -40,6 +42,6 @@ const AnalyticsCard = ({ title, value, icon, loading = false }) => {
 
     </div>
   );
-};
+});
 
 export default AnalyticsCard;

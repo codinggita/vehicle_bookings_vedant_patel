@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import Seo from '@components/seo/Seo';
 import notificationService from '@components/notifications/notificationService';
 import { login } from '@services/authService';
 import { setCredentials } from '@features/auth/authSlice';
@@ -18,7 +19,7 @@ const loginSchema = Yup.object().shape({
     .required('Password is required'),
 });
 
-const LoginPage = () => {
+const LoginPage = memo(() => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
@@ -64,7 +65,9 @@ const LoginPage = () => {
   });
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-100 relative overflow-hidden font-sans">
+    <>
+      <Seo />
+      <div className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-100 relative overflow-hidden font-sans">
       {/* Background Decorative Gradients */}
       <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-violet-600/10 rounded-full blur-[120px] pointer-events-none" />
@@ -158,7 +161,7 @@ const LoginPage = () => {
           <button
             type="submit"
             disabled={formik.isSubmitting}
-            className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-medium shadow-lg shadow-indigo-500/20 transition-all duration-200 transform active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-medium shadow-lg shadow-indigo-500/20 transition-all duration-200 transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {formik.isSubmitting ? (
               <>
@@ -175,7 +178,8 @@ const LoginPage = () => {
         </form>
       </div>
     </div>
+    </>
   );
-};
+});
 
 export default LoginPage;

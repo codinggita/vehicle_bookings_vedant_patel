@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { useFormik } from 'formik';
 import { useDispatch } from 'react-redux';
 import notificationService from '@components/notifications/notificationService';
@@ -14,7 +14,7 @@ import DatasetForm from './DatasetForm';
  * @param {boolean} props.isOpen - Checks if modal is active
  * @param {function} props.onClose - Handles modal closure
  */
-const CreateDatasetModal = ({ isOpen, onClose }) => {
+const CreateDatasetModal = memo(({ isOpen, onClose }) => {
   const dispatch = useDispatch();
 
   // Generate random IDs once when component mounts to comply with React render purity rules
@@ -89,6 +89,6 @@ const CreateDatasetModal = ({ isOpen, onClose }) => {
       </div>
     </div>
   );
-};
+});
 
 export default CreateDatasetModal;

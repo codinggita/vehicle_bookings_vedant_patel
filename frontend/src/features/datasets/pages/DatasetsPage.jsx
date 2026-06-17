@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import Seo from '@components/seo/Seo';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSearchParams } from 'react-router-dom';
 import { fetchDatasets } from '../store/datasetThunks';
@@ -37,39 +38,40 @@ const DatasetsPage = () => {
     dispatch(fetchDatasets(params));
   }, [searchParams, dispatch]);
 
-  const handleRetry = () => {
+  const handleRetry = useCallback(() => {
     const params = {};
     searchParams.forEach((value, key) => {
       params[key] = value;
     });
     dispatch(fetchDatasets(params));
-  };
+  }, [searchParams, dispatch]);
 
-  // Row selection triggers
-  const handleEditClick = (dataset) => {
+  const handleEditClick = useCallback((dataset) => {
     dispatch(setSelectedDataset(dataset));
     setIsEditOpen(true);
-  };
+  }, [dispatch]);
 
-  const handleEditClose = () => {
+  const handleEditClose = useCallback(() => {
     dispatch(clearSelectedDataset());
     setIsEditOpen(false);
-  };
+  }, [dispatch]);
 
-  const handleDeleteClick = (dataset) => {
+  const handleDeleteClick = useCallback((dataset) => {
     setDeleteTarget(dataset);
     setIsDeleteOpen(true);
-  };
+  }, []);
 
-  const handleDeleteClose = () => {
+  const handleDeleteClose = useCallback(() => {
     setDeleteTarget(null);
     setIsDeleteOpen(false);
-  };
+  }, []);
 
-  const filterKey = `${searchParams.get('status') || ''}-${searchParams.get('vehicle') || ''}-${searchParams.get('payment') || ''}-${searchParams.get('minRating') || ''}-${searchParams.get('minFare') || ''}-${searchParams.get('maxFare') || ''}-${searchParams.get('minDistance') || ''}-${searchParams.get('maxDistance') || ''}-${searchParams.get('date') || ''}`;
+  const filterKey = useMemo(() => `${searchParams.get('status') || ''}-${searchParams.get('vehicle') || ''}-${searchParams.get('payment') || ''}-${searchParams.get('minRating') || ''}-${searchParams.get('minFare') || ''}-${searchParams.get('maxFare') || ''}-${searchParams.get('minDistance') || ''}-${searchParams.get('maxDistance') || ''}-${searchParams.get('date') || ''}`, [searchParams]);
 
   return (
-    <div className="space-y-6 select-none max-w-[1600px] mx-auto">
+    <>
+      <Seo />
+      <div className="space-y-6 select-none max-w-[1600px] mx-auto">
       
       {/* 1. Header block */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -134,6 +136,7 @@ const DatasetsPage = () => {
       />
 
     </div>
+    </>
   );
 };
 

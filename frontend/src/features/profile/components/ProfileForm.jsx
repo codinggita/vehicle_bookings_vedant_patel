@@ -1,3 +1,4 @@
+import { useCallback, memo } from 'react';
 import { useDispatch } from 'react-redux';
 import notificationService from '@components/notifications/notificationService';
 import { updateProfile } from '../store/profileThunks';
@@ -13,7 +14,7 @@ import { getProfileFormConfig } from '@features/forms/utils/formGenerator';
  * @param {Object} props.profile - User profile data initial values
  * @param {function} props.onCancel - Callback to exit edit mode
  */
-const ProfileForm = ({ profile, onCancel }) => {
+const ProfileForm = memo(({ profile, onCancel }) => {
   const dispatch = useDispatch();
 
   const initialValues = {
@@ -22,7 +23,7 @@ const ProfileForm = ({ profile, onCancel }) => {
     bio: profile?.bio || '',
   };
 
-  const handleSubmit = async (values, { setSubmitting }) => {
+  const handleSubmit = useCallback(async (values, { setSubmitting }) => {
     try {
       const resultAction = await dispatch(updateProfile(values));
       if (updateProfile.fulfilled.match(resultAction)) {
@@ -36,7 +37,7 @@ const ProfileForm = ({ profile, onCancel }) => {
     } finally {
       setSubmitting(false);
     }
-  };
+  }, [dispatch, onCancel]);
 
   return (
     <div className="animate-fade-in pt-2">
@@ -50,6 +51,6 @@ const ProfileForm = ({ profile, onCancel }) => {
       />
     </div>
   );
-};
+});
 
 export default ProfileForm;

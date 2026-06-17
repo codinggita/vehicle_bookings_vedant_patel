@@ -1,4 +1,5 @@
 import { useEffect, useCallback } from 'react';
+import Seo from '@components/seo/Seo';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchDashboardStats } from '@features/dashboard/dashboardThunks';
 import AnalyticsGrid from '@components/dashboard/AnalyticsGrid';
@@ -26,7 +27,9 @@ const DashboardPage = () => {
   }, [loadStats]);
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <>
+      <Seo />
+      <div className="space-y-8 animate-fade-in">
       {/* Dashboard Top Header area */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -42,7 +45,7 @@ const DashboardPage = () => {
         <button
           onClick={loadStats}
           disabled={loading}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800/80 text-slate-300 hover:text-slate-100 text-sm font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform active:scale-98 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800/80 text-slate-300 hover:text-slate-100 text-sm font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform active:scale-95 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
         >
           <svg
             className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`}
@@ -80,6 +83,7 @@ const DashboardPage = () => {
         loading={loading}
       />
     </div>
+    </>
   );
 };
 

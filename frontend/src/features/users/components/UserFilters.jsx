@@ -1,3 +1,4 @@
+import React, { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setFilters, clearFilters } from '../store/userSlice';
 
@@ -5,17 +6,17 @@ import { setFilters, clearFilters } from '../store/userSlice';
  * UserFilters Component
  * Dropdown selectors for role and status filtering, with a dynamic clear button.
  */
-const UserFilters = () => {
+const UserFilters = React.memo(() => {
   const dispatch = useDispatch();
   const { filters } = useSelector((state) => state.users);
 
-  const handleFilterChange = (key, value) => {
+  const handleFilterChange = useCallback((key, value) => {
     dispatch(setFilters({ [key]: value }));
-  };
+  }, [dispatch]);
 
-  const handleClear = () => {
+  const handleClear = useCallback(() => {
     dispatch(clearFilters());
-  };
+  }, [dispatch]);
 
   // Check if any filter is active
   const hasActiveFilters = filters.search || filters.role || filters.status;
@@ -77,6 +78,6 @@ const UserFilters = () => {
 
     </div>
   );
-};
+});
 
 export default UserFilters;

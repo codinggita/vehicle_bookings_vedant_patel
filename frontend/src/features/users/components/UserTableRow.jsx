@@ -1,3 +1,5 @@
+import React from 'react';
+
 /**
  * UserTableRow Component
  * Displays a single row in the users management table with action triggers.
@@ -7,7 +9,7 @@
  * @param {function} props.onEdit - Edit action callback
  * @param {function} props.onDelete - Delete action callback
  */
-const UserTableRow = ({ user, onEdit, onDelete }) => {
+const UserTableRow = React.memo(({ user, onEdit, onDelete }) => {
   
   // Format creation dates nicely
   const formatDate = (dateStr) => {
@@ -108,7 +110,7 @@ const UserTableRow = ({ user, onEdit, onDelete }) => {
           <button
             onClick={() => onEdit(user)}
             disabled={user.isOptimistic}
-            className="p-1.5 rounded-lg border border-slate-850 hover:border-indigo-500/30 text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/5 transition-all duration-200"
+            className="p-1.5 rounded-lg border border-slate-800 hover:border-indigo-500/30 text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/5 transition-all duration-200"
             title="Edit User"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -120,7 +122,7 @@ const UserTableRow = ({ user, onEdit, onDelete }) => {
           <button
             onClick={() => onDelete(user)}
             disabled={user.isOptimistic}
-            className="p-1.5 rounded-lg border border-slate-850 hover:border-red-500/30 text-slate-400 hover:text-red-400 hover:bg-red-500/5 transition-all duration-200"
+            className="p-1.5 rounded-lg border border-slate-800 hover:border-red-500/30 text-slate-400 hover:text-red-400 hover:bg-red-500/5 transition-all duration-200"
             title="Delete User"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -131,6 +133,6 @@ const UserTableRow = ({ user, onEdit, onDelete }) => {
       </td>
     </tr>
   );
-};
+});
 
 export default UserTableRow;

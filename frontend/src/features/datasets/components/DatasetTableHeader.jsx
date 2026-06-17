@@ -1,17 +1,18 @@
+import { useCallback, memo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 /**
  * DatasetTableHeader Component
  * Renders the table head elements. Supports sorting by clicking sortable columns.
  */
-const DatasetTableHeader = () => {
+const DatasetTableHeader = memo(() => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Read current sort criteria from URL
   const sortBy = searchParams.get('sortBy') || '';
   const order = searchParams.get('order') || '';
 
-  const handleSort = (field) => {
+  const handleSort = useCallback((field) => {
     const nextParams = new URLSearchParams(searchParams);
     if (sortBy === field) {
       // Toggle order
@@ -22,7 +23,7 @@ const DatasetTableHeader = () => {
     }
     nextParams.set('page', '1');
     setSearchParams(nextParams);
-  };
+  }, [searchParams, setSearchParams, sortBy, order]);
 
   // Render sort icon depending on active state
   const renderSortIcon = (field) => {
@@ -82,6 +83,6 @@ const DatasetTableHeader = () => {
       </tr>
     </thead>
   );
-};
+});
 
 export default DatasetTableHeader;

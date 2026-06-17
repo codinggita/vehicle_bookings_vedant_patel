@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, memo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 /**
  * DatasetSearch Component
  * Debounced search input that synchronizes search term with URL search params.
  */
-const DatasetSearch = () => {
+const DatasetSearch = memo(() => {
   const [searchParams, setSearchParams] = useSearchParams();
   const searchVal = searchParams.get('search') || '';
   const [searchTerm, setSearchTerm] = useState(searchVal);
@@ -28,13 +28,13 @@ const DatasetSearch = () => {
     return () => clearTimeout(timer);
   }, [searchTerm, searchParams, setSearchParams, searchVal]);
 
-  const handleClear = () => {
+  const handleClear = useCallback(() => {
     setSearchTerm('');
     const nextParams = new URLSearchParams(searchParams);
     nextParams.delete('search');
     nextParams.set('page', '1');
     setSearchParams(nextParams);
-  };
+  }, [searchParams, setSearchParams]);
 
   return (
     <div className="relative w-full sm:max-w-xs">
@@ -65,6 +65,6 @@ const DatasetSearch = () => {
       )}
     </div>
   );
-};
+});
 
 export default DatasetSearch;

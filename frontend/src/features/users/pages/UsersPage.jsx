@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import Seo from '@components/seo/Seo';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUsersList } from '../store/userThunks';
 import UsersTable from '../components/UsersTable';
@@ -32,18 +33,20 @@ const UsersPage = () => {
     fetchUsers();
   }, [fetchUsers]);
 
-  const handleEditClick = (user) => {
+  const handleEditClick = useCallback((user) => {
     setSelectedUser(user);
     setIsEditOpen(true);
-  };
+  }, []);
 
-  const handleDeleteClick = (user) => {
+  const handleDeleteClick = useCallback((user) => {
     setSelectedUser(user);
     setIsDeleteOpen(true);
-  };
+  }, []);
 
   return (
-    <div className="space-y-6.5 animate-fade-in pb-10">
+    <>
+      <Seo />
+      <div className="space-y-6.5 animate-fade-in pb-10">
       
       {/* 1. Header Section */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -59,7 +62,7 @@ const UsersPage = () => {
         {/* Add User trigger */}
         <button
           onClick={() => setIsCreateOpen(true)}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white text-sm font-semibold shadow-lg shadow-indigo-500/15 transition-all duration-200 transform active:scale-98 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white text-sm font-semibold shadow-lg shadow-indigo-500/15 transition-all duration-200 transform active:scale-95 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
         >
           <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -106,6 +109,7 @@ const UsersPage = () => {
       />
 
     </div>
+    </>
   );
 };
 

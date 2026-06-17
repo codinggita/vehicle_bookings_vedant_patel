@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 /**
  * ProfileAvatar Component
  * Premium avatar visual display with colored initials and upload overlay effects.
@@ -6,7 +8,7 @@
  * @param {string} props.name - User full name
  * @param {string} props.email - User email address
  */
-const ProfileAvatar = ({ name, email }) => {
+const ProfileAvatar = memo(({ name, email }) => {
   const initial = name ? name.charAt(0).toUpperCase() : 'U';
 
   return (
@@ -36,6 +38,6 @@ const ProfileAvatar = ({ name, email }) => {
       </div>
     </div>
   );
-};
+});
 
 export default ProfileAvatar;

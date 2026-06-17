@@ -1,4 +1,5 @@
 
+import { useCallback, memo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setSinglePreference } from '../store/settingsSlice';
 
@@ -6,13 +7,13 @@ import { setSinglePreference } from '../store/settingsSlice';
  * PreferenceSection Component
  * Renders switches/toggles for custom application, notifications, and dashboard preferences.
  */
-const PreferenceSection = () => {
+const PreferenceSection = memo(() => {
   const dispatch = useDispatch();
   const preferences = useSelector((state) => state.settings.preferences);
 
-  const handleToggle = (key) => {
+  const handleToggle = useCallback((key) => {
     dispatch(setSinglePreference({ key, value: !preferences[key] }));
-  };
+  }, [dispatch, preferences]);
 
   const preferenceItems = [
     {
@@ -67,6 +68,6 @@ const PreferenceSection = () => {
       ))}
     </div>
   );
-};
+});
 
 export default PreferenceSection;

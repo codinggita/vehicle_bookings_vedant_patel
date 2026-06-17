@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useDispatch } from 'react-redux';
 import { useFormik } from 'formik';
 import notificationService from '@components/notifications/notificationService';
@@ -14,7 +15,7 @@ import UserForm from './UserForm';
  * @param {function} props.onClose - Closure callback
  * @param {Object} props.user - The user object currently being edited
  */
-const EditUserModal = ({ isOpen, onClose, user }) => {
+const EditUserModal = memo(({ isOpen, onClose, user }) => {
   const dispatch = useDispatch();
 
   // Status mapping: backend isActive boolean maps to UI string status
@@ -100,6 +101,6 @@ const EditUserModal = ({ isOpen, onClose, user }) => {
       </div>
     </div>
   );
-};
+});
 
 export default EditUserModal;

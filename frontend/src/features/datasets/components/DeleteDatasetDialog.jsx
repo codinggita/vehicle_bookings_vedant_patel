@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { useDispatch } from 'react-redux';
 import notificationService from '@components/notifications/notificationService';
 import { deleteDataset } from '../store/datasetThunks';
@@ -13,7 +13,7 @@ import { deleteDataset } from '../store/datasetThunks';
  * @param {string} props.bookingId - The formatted Booking ID to display in message
  * @param {function} props.onClose - Closure callback
  */
-const DeleteDatasetDialog = ({ isOpen, datasetId, bookingId, onClose }) => {
+const DeleteDatasetDialog = memo(({ isOpen, datasetId, bookingId, onClose }) => {
   const dispatch = useDispatch();
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -89,6 +89,6 @@ const DeleteDatasetDialog = ({ isOpen, datasetId, bookingId, onClose }) => {
       </div>
     </div>
   );
-};
+});
 
 export default DeleteDatasetDialog;

@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import Seo from '@components/seo/Seo';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProfile } from '../store/profileThunks';
 import ProfileAvatar from '../components/ProfileAvatar';
@@ -20,12 +21,14 @@ const ProfilePage = () => {
     dispatch(fetchProfile());
   }, [dispatch]);
 
-  const handleRetry = () => {
+  const handleRetry = useCallback(() => {
     dispatch(fetchProfile());
-  };
+  }, [dispatch]);
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto select-none">
+    <>
+      <Seo />
+      <div className="space-y-6 max-w-4xl mx-auto select-none">
       
       {/* Page Header */}
       <div>
@@ -89,6 +92,7 @@ const ProfilePage = () => {
       )}
 
     </div>
+    </>
   );
 };
 

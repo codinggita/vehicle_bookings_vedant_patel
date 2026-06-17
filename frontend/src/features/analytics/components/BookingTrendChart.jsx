@@ -1,4 +1,4 @@
-
+import React from 'react';
 import { useSelector } from 'react-redux';
 import {
   ResponsiveContainer,
@@ -10,6 +10,7 @@ import {
   Tooltip,
   Legend,
 } from 'recharts';
+import { useMemoizedData } from '@hooks/useMemoizedData';
 
 const MONTH_NAMES = [
   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -20,16 +21,18 @@ const MONTH_NAMES = [
  * BookingTrendChart Component
  * Plots a line chart showing monthly ride trend statistics.
  */
-const BookingTrendChart = ({ data = [] }) => {
+const BookingTrendChart = React.memo(({ data = [] }) => {
   const theme = useSelector((state) => state.settings.theme);
   const isDark = theme === 'dark';
 
-  const formattedData = [...data]
-    .sort((a, b) => a.month - b.month)
-    .map((item) => ({
-      name: MONTH_NAMES[item.month - 1] || `Month ${item.month}`,
-      Rides: item.totalBookings,
-    }));
+  const formattedData = useMemoizedData(() => {
+    return [...data]
+      .sort((a, b) => a.month - b.month)
+      .map((item) => ({
+        name: MONTH_NAMES[item.month - 1] || `Month ${item.month}`,
+        Rides: item.totalBookings,
+      }));
+  }, [data], []);
 
   const gridColor = isDark ? '#1e293b' : '#e2e8f0';
   const textColor = isDark ? '#94a3b8' : '#64748b';
@@ -85,6 +88,6 @@ const BookingTrendChart = ({ data = [] }) => {
       </ResponsiveContainer>
     </div>
   );
-};
+});
 
 export default BookingTrendChart;

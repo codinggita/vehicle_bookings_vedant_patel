@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { updateProfile } from '@features/profile/store/profileThunks';
 
 // Retrieve initial auth state from localStorage to ensure page reloads persist user sessions
 const storedToken = localStorage.getItem('token');
@@ -81,7 +82,7 @@ const authSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase('profile/update/fulfilled', (state, action) => {
+    builder.addCase(updateProfile.fulfilled, (state, action) => {
       if (state.user) {
         state.user = { ...state.user, ...action.payload };
         localStorage.setItem('user', JSON.stringify(state.user));

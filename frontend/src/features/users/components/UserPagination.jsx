@@ -1,3 +1,4 @@
+import { memo, useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setPage, setLimit } from '../store/userSlice';
 
@@ -5,23 +6,23 @@ import { setPage, setLimit } from '../store/userSlice';
  * UserPagination Component
  * Coordinates pagination controls, entries stats, and items-per-page limit selector.
  */
-const UserPagination = () => {
+const UserPagination = memo(() => {
   const dispatch = useDispatch();
   const { currentPage, totalPages, limit, totalUsers } = useSelector((state) => state.users);
 
-  const handlePageChange = (page) => {
+  const handlePageChange = useCallback((page) => {
     if (page >= 1 && page <= totalPages) {
       dispatch(setPage(page));
     }
-  };
+  }, [dispatch, totalPages]);
 
-  const handleLimitChange = (e) => {
+  const handleLimitChange = useCallback((e) => {
     dispatch(setLimit(Number(e.target.value)));
-  };
+  }, [dispatch]);
 
   // Calculate items ranges (e.g. "Showing 1 to 10 of 45 entries")
-  const startEntry = totalUsers === 0 ? 0 : (currentPage - 1) * limit + 1;
-  const endEntry = Math.min(currentPage * limit, totalUsers);
+  const startEntry = useMemo(() => totalUsers === 0 ? 0 : (currentPage - 1) * limit + 1, [totalUsers, currentPage, limit]);
+  const endEntry = useMemo(() => Math.min(currentPage * limit, totalUsers), [currentPage, limit, totalUsers]);
 
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4.5 bg-slate-900/40 border-t border-slate-800/80">
@@ -96,6 +97,6 @@ const UserPagination = () => {
 
     </div>
   );
-};
+});
 
 export default UserPagination;
