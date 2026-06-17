@@ -7,6 +7,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { AppRoutes } from '@routes';
 import { getMe } from '@services/authService';
 import { initializeAuth, restoreSession, logout } from '@features/auth/authSlice';
+import MuiThemeProvider from '@features/settings/components/MuiThemeProvider';
 
 /**
  * Validates and restores user sessions upon application mount.
@@ -76,7 +77,9 @@ function App() {
         </Helmet>
         
         <AuthInitializer>
-          <AppRoutes />
+          <MuiThemeProvider>
+            <AppRoutes />
+          </MuiThemeProvider>
         </AuthInitializer>
 
         <Toaster position="bottom-right" />
