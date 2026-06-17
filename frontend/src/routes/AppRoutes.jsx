@@ -11,6 +11,7 @@ import ProtectedRoute from './ProtectedRoute';
 import PublicRoute from './PublicRoute';
 import RoleBasedRoute from './RoleBasedRoute';
 import DashboardLayout from '@layouts/DashboardLayout';
+import UsersPage from '@features/users/pages/UsersPage';
 
 const AppRoutes = () => {
   return (
@@ -46,6 +47,16 @@ const AppRoutes = () => {
       >
         <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
         <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
+
+        {/* User Management Route (Restricted to Admins) */}
+        <Route
+          path="/users"
+          element={
+            <RoleBasedRoute allowedRoles={['admin']}>
+              <UsersPage />
+            </RoleBasedRoute>
+          }
+        />
 
         {/* Role-based protected routes */}
         <Route
