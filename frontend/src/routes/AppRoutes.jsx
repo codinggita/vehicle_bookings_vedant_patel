@@ -10,6 +10,7 @@ import SettingsPage from '../pages/SettingsPage';
 import ProtectedRoute from './ProtectedRoute';
 import PublicRoute from './PublicRoute';
 import RoleBasedRoute from './RoleBasedRoute';
+import DashboardLayout from '@layouts/DashboardLayout';
 
 const AppRoutes = () => {
   return (
@@ -40,7 +41,9 @@ const AppRoutes = () => {
         path={ROUTES.PROFILE}
         element={
           <ProtectedRoute>
-            <ProfilePage />
+            <DashboardLayout>
+              <ProfilePage />
+            </DashboardLayout>
           </ProtectedRoute>
         }
       />
@@ -48,7 +51,9 @@ const AppRoutes = () => {
         path={ROUTES.SETTINGS}
         element={
           <ProtectedRoute>
-            <SettingsPage />
+            <DashboardLayout>
+              <SettingsPage />
+            </DashboardLayout>
           </ProtectedRoute>
         }
       />
@@ -58,7 +63,9 @@ const AppRoutes = () => {
         path={ROUTES.ADMIN}
         element={
           <RoleBasedRoute allowedRoles={['admin']}>
-            <AdminPage />
+            <DashboardLayout>
+              <AdminPage />
+            </DashboardLayout>
           </RoleBasedRoute>
         }
       />
@@ -66,7 +73,9 @@ const AppRoutes = () => {
         path={ROUTES.USER}
         element={
           <RoleBasedRoute allowedRoles={['user', 'admin']}>
-            <UserPage />
+            <DashboardLayout>
+              <UserPage />
+            </DashboardLayout>
           </RoleBasedRoute>
         }
       />
