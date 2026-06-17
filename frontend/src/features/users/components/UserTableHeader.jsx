@@ -1,8 +1,10 @@
+import { memo } from 'react';
+
 /**
  * UserTableHeader Component
  * Renders header columns for the Users management table.
  */
-const UserTableHeader = () => {
+const UserTableHeader = memo(() => {
   const headers = ['User ID', 'Name', 'Email', 'Role', 'Status', 'Created At', 'Actions'];
 
   return (
@@ -22,6 +24,6 @@ const UserTableHeader = () => {
       </tr>
     </thead>
   );
-};
+});
 
 export default UserTableHeader;

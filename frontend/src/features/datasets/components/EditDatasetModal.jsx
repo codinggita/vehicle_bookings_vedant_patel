@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useFormik } from 'formik';
 import { useDispatch, useSelector } from 'react-redux';
 import notificationService from '@components/notifications/notificationService';
@@ -13,7 +14,7 @@ import DatasetForm from './DatasetForm';
  * @param {boolean} props.isOpen - Checks if modal is active
  * @param {function} props.onClose - Handles modal closure
  */
-const EditDatasetModal = ({ isOpen, onClose }) => {
+const EditDatasetModal = memo(({ isOpen, onClose }) => {
   const dispatch = useDispatch();
   const { selectedDataset } = useSelector((state) => state.datasets);
 
@@ -99,6 +100,6 @@ const EditDatasetModal = ({ isOpen, onClose }) => {
       </div>
     </div>
   );
-};
+});
 
 export default EditDatasetModal;

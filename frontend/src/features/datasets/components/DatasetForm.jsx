@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 /**
  * DatasetForm Component
  * Shared Form layout for both Create Dataset and Edit Dataset modals.
@@ -7,7 +9,7 @@
  * @param {boolean} [props.isEditMode=false] - If true, lock/disable certain fields like bookingId if needed
  * @param {function} props.onCancel - Callback to close the modal
  */
-const DatasetForm = ({ formik, isEditMode = false, onCancel }) => {
+const DatasetForm = memo(({ formik, isEditMode = false, onCancel }) => {
   return (
     <form onSubmit={formik.handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
       
@@ -410,6 +412,6 @@ const DatasetForm = ({ formik, isEditMode = false, onCancel }) => {
 
     </form>
   );
-};
+});
 
 export default DatasetForm;

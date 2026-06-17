@@ -77,10 +77,21 @@ const registerUser = async (req, res) => {
 
     await newUser.save();
 
-    // 6. Return standard success response
+    // 6. Generate token for auto-login
+    const token = generateToken(newUser._id, newUser.role);
+
+    // 7. Return standard success response
     return res.status(201).json({
       success: true,
-      message: "User registered successfully"
+      message: "User registered successfully",
+      token,
+      user: {
+        _id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role,
+        isActive: newUser.isActive
+      }
     });
 
   } catch (error) {

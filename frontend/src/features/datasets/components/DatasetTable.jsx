@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import DatasetTableHeader from './DatasetTableHeader';
 import DatasetRow from './DatasetRow';
 import { TableSkeleton } from '@components/skeletons';
@@ -16,7 +17,7 @@ import ErrorState from '@components/ui/ErrorState/ErrorState';
  * @param {function} props.onEdit - Row edit callback
  * @param {function} props.onDelete - Row delete callback
  */
-const DatasetTable = ({ datasets, loading, error, onRetry, onEdit, onDelete }) => {
+const DatasetTable = memo(({ datasets, loading, error, onRetry, onEdit, onDelete }) => {
 
   return (
     <div className="w-full bg-slate-900/40 border border-slate-800/80 rounded-2xl overflow-hidden shadow-lg backdrop-blur-md">
@@ -68,6 +69,6 @@ const DatasetTable = ({ datasets, loading, error, onRetry, onEdit, onDelete }) =
       </div>
     </div>
   );
-};
+});
 
 export default DatasetTable;

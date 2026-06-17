@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import UserTableHeader from './UserTableHeader';
 import UserTableRow from './UserTableRow';
 import { TableSkeleton } from '@components/skeletons';
@@ -16,7 +17,7 @@ import ErrorState from '@components/ui/ErrorState/ErrorState';
  * @param {function} props.onDelete - Delete trigger callback
  * @param {function} [props.onRetry] - Retry callback for error state
  */
-const UsersTable = ({ users, loading, error, onEdit, onDelete, onRetry }) => {
+const UsersTable = memo(({ users, loading, error, onEdit, onDelete, onRetry }) => {
 
   return (
     <div className="w-full bg-slate-900/40 backdrop-blur-xl border border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
@@ -71,6 +72,6 @@ const UsersTable = ({ users, loading, error, onEdit, onDelete, onRetry }) => {
 
     </div>
   );
-};
+});
 
 export default UsersTable;

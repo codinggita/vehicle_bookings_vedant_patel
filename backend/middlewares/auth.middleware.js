@@ -26,7 +26,7 @@ const protect = async (req, res, next) => {
     }
 
     // 3. Verify and decode JWT token payload
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "fallback_signing_secret");
 
     // 4. Locate user by the decoded token userId payload, ensuring they are active
     const user = await User.findById(decoded.userId);

@@ -1,4 +1,5 @@
 
+import { useCallback, memo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setThemeState } from '../store/settingsSlice';
 import notificationService from '@components/notifications/notificationService';
@@ -7,11 +8,11 @@ import notificationService from '@components/notifications/notificationService';
  * ThemeSettings Component
  * Provides options to toggle between light mode and dark mode, or detect system preferences.
  */
-const ThemeSettings = () => {
+const ThemeSettings = memo(() => {
   const dispatch = useDispatch();
   const activeTheme = useSelector((state) => state.settings.theme);
 
-  const handleThemeChange = (mode) => {
+  const handleThemeChange = useCallback((mode) => {
     let targetMode = mode;
     
     if (mode === 'system') {
@@ -23,7 +24,7 @@ const ThemeSettings = () => {
     }
 
     dispatch(setThemeState(targetMode));
-  };
+  }, [dispatch]);
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -69,6 +70,6 @@ const ThemeSettings = () => {
       </button>
     </div>
   );
-};
+});
 
 export default ThemeSettings;

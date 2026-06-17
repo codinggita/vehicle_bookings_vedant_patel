@@ -1,4 +1,4 @@
-
+import React from 'react';
 import { useSelector } from 'react-redux';
 import {
   ResponsiveContainer,
@@ -8,21 +8,24 @@ import {
   Tooltip,
   Legend,
 } from 'recharts';
+import { useMemoizedData } from '@hooks/useMemoizedData';
 
 /**
  * RealTimeStats Component
  * Renders a pie chart of booking statuses.
  */
-const RealTimeStats = ({ stats = {} }) => {
+const RealTimeStats = React.memo(({ stats = {} }) => {
   const theme = useSelector((state) => state.settings.theme);
   const isDark = theme === 'dark';
 
-  const chartData = [
-    { name: 'Completed', value: stats.completedBookings || 0, color: '#10b981' },
-    { name: 'Cancelled', value: stats.cancelledBookings || 0, color: '#ef4444' },
-    { name: 'Pending', value: stats.pendingBookings || 0, color: '#f59e0b' },
-    { name: 'Confirmed', value: stats.confirmedBookings || 0, color: '#3b82f6' },
-  ].filter((item) => item.value > 0);
+  const chartData = useMemoizedData(() => {
+    return [
+      { name: 'Completed', value: stats.completedBookings || 0, color: '#10b981' },
+      { name: 'Cancelled', value: stats.cancelledBookings || 0, color: '#ef4444' },
+      { name: 'Pending', value: stats.pendingBookings || 0, color: '#f59e0b' },
+      { name: 'Confirmed', value: stats.confirmedBookings || 0, color: '#3b82f6' },
+    ].filter((item) => item.value > 0);
+  }, [stats], []);
 
   const tooltipBg = isDark ? '#0f172a' : '#ffffff';
   const tooltipBorder = isDark ? '#1e293b' : '#e2e8f0';
@@ -70,6 +73,6 @@ const RealTimeStats = ({ stats = {} }) => {
       </ResponsiveContainer>
     </div>
   );
-};
+});
 
 export default RealTimeStats;

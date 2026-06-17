@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 /**
  * DatasetRow Component
@@ -9,7 +9,7 @@ import { useState, useRef, useEffect } from 'react';
  * @param {function} props.onEdit - Callback when edit action is clicked
  * @param {function} props.onDelete - Callback when delete action is clicked
  */
-const DatasetRow = ({ dataset, onEdit, onDelete }) => {
+const DatasetRow = React.memo(({ dataset, onEdit, onDelete }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
@@ -206,6 +206,6 @@ const DatasetRow = ({ dataset, onEdit, onDelete }) => {
 
     </tr>
   );
-};
+});
 
 export default DatasetRow;

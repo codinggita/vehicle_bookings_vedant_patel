@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useDispatch } from 'react-redux';
 import { useFormik } from 'formik';
 import notificationService from '@components/notifications/notificationService';
@@ -13,7 +14,7 @@ import UserForm from './UserForm';
  * @param {boolean} props.isOpen - Display flag
  * @param {function} props.onClose - Closure callback
  */
-const CreateUserModal = ({ isOpen, onClose }) => {
+const CreateUserModal = memo(({ isOpen, onClose }) => {
   const dispatch = useDispatch();
 
   const formik = useFormik({
@@ -94,6 +95,6 @@ const CreateUserModal = ({ isOpen, onClose }) => {
       </div>
     </div>
   );
-};
+});
 
 export default CreateUserModal;

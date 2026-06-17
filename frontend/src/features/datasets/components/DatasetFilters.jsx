@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, memo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 /**
@@ -6,7 +6,7 @@ import { useSearchParams } from 'react-router-dom';
  * Allows filtering bookings by status, vehicle type, payment method, rating,
  * fare boundaries, distance boundaries, and booking date. Syncs directly to URL.
  */
-const DatasetFilters = () => {
+const DatasetFilters = memo(() => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -27,18 +27,18 @@ const DatasetFilters = () => {
   const [localMinDist, setLocalMinDist] = useState(minDistance);
   const [localMaxDist, setLocalMaxDist] = useState(maxDistance);
 
-  const updateParam = (key, value) => {
+  const updateParam = useCallback((key, value) => {
     const nextParams = new URLSearchParams(searchParams);
     if (value) {
       nextParams.set(key, value);
     } else {
       nextParams.delete(key);
     }
-    nextParams.set('page', '1'); // reset page on filter change
+    nextParams.set('page', '1');
     setSearchParams(nextParams);
-  };
+  }, [searchParams, setSearchParams]);
 
-  const handleApplyRanges = (e) => {
+  const handleApplyRanges = useCallback((e) => {
     e.preventDefault();
     const nextParams = new URLSearchParams(searchParams);
     
@@ -56,9 +56,9 @@ const DatasetFilters = () => {
 
     nextParams.set('page', '1');
     setSearchParams(nextParams);
-  };
+  }, [searchParams, setSearchParams, localMinFare, localMaxFare, localMinDist, localMaxDist]);
 
-  const handleClearFilters = () => {
+  const handleClearFilters = useCallback(() => {
     setLocalMinFare('');
     setLocalMaxFare('');
     setLocalMinDist('');
@@ -75,7 +75,7 @@ const DatasetFilters = () => {
     if (order) nextParams.set('order', order);
     nextParams.set('page', '1');
     setSearchParams(nextParams);
-  };
+  }, [searchParams, setSearchParams]);
 
   const hasActiveFilters = status || vehicle || payment || minRating || minFare || maxFare || minDistance || maxDistance || date;
 
@@ -266,6 +266,6 @@ const DatasetFilters = () => {
       )}
     </div>
   );
-};
+});
 
 export default DatasetFilters;

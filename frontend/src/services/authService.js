@@ -44,8 +44,21 @@ export const login = async (email, password) => {
   return response.data;
 };
 
+/**
+ * Calls the backend registration endpoint to create a new account.
+ * @param {string} name 
+ * @param {string} email 
+ * @param {string} password 
+ * @returns {Promise<object>} Response data containing success, user, and token
+ */
+export const register = async (name, email, password) => {
+  const response = await API.post('/auth/register', { name, email, password });
+  return response.data;
+};
+
 const authService = {
   login,
+  register,
   getMe,
 };
 

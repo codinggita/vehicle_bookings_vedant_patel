@@ -1,4 +1,5 @@
 
+import Seo from '@components/seo/Seo';
 import SettingsCard from '../components/SettingsCard';
 import ThemeSettings from '../components/ThemeSettings';
 import PreferenceSection from '../components/PreferenceSection';
@@ -9,7 +10,9 @@ import PreferenceSection from '../components/PreferenceSection';
  */
 const SettingsPage = () => {
   return (
-    <div className="space-y-8 animate-fade-in">
+    <>
+      <Seo />
+      <div className="space-y-8 animate-fade-in">
       {/* Settings Top Header Area */}
       <div>
         <h2 className="text-2xl md:text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight">
@@ -48,6 +51,7 @@ const SettingsPage = () => {
         </SettingsCard>
       </div>
     </div>
+    </>
   );
 };
 

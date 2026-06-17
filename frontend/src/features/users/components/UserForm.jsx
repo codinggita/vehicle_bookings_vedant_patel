@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 /**
  * UserForm Component
  * Shared Form layout for both Create User and Edit User modals.
@@ -7,7 +9,7 @@
  * @param {boolean} [props.isEditMode=false] - If true, hides the password field
  * @param {function} props.onCancel - Callback to close the modal
  */
-const UserForm = ({ formik, isEditMode = false, onCancel }) => {
+const UserForm = memo(({ formik, isEditMode = false, onCancel }) => {
   return (
     <form onSubmit={formik.handleSubmit} className="space-y-5">
       
@@ -166,6 +168,6 @@ const UserForm = ({ formik, isEditMode = false, onCancel }) => {
 
     </form>
   );
-};
+});
 
 export default UserForm;

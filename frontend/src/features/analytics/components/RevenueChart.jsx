@@ -1,4 +1,4 @@
-
+import React from 'react';
 import { useSelector } from 'react-redux';
 import {
   ResponsiveContainer,
@@ -9,23 +9,26 @@ import {
   CartesianGrid,
   Tooltip,
 } from 'recharts';
+import { useMemoizedData } from '@hooks/useMemoizedData';
 
 /**
  * RevenueChart Component
  * Renders a horizontal bar chart summarizing the highest fare bookings.
  */
-const RevenueChart = ({ data = [] }) => {
+const RevenueChart = React.memo(({ data = [] }) => {
   const theme = useSelector((state) => state.settings.theme);
   const isDark = theme === 'dark';
 
   // Format and take top 5 highest fares
-  const formattedData = [...data]
-    .slice(0, 5)
-    .map((item) => ({
-      name: item.customerName || item.bookingId || 'Anonymous',
-      Fare: item.fare || 0,
-      vehicle: item.vehicleType ? item.vehicleType.toUpperCase() : 'N/A',
-    }));
+  const formattedData = useMemoizedData(() => {
+    return [...data]
+      .slice(0, 5)
+      .map((item) => ({
+        name: item.customerName || item.bookingId || 'Anonymous',
+        Fare: item.fare || 0,
+        vehicle: item.vehicleType ? item.vehicleType.toUpperCase() : 'N/A',
+      }));
+  }, [data], []);
 
   const gridColor = isDark ? '#1e293b' : '#e2e8f0';
   const textColor = isDark ? '#94a3b8' : '#64748b';
@@ -81,6 +84,6 @@ const RevenueChart = ({ data = [] }) => {
       </ResponsiveContainer>
     </div>
   );
-};
+});
 
 export default RevenueChart;

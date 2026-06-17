@@ -1,10 +1,12 @@
 
 
+import { memo } from 'react';
+
 /**
  * SettingsCard Component
  * Wraps settings controls in an aesthetically pleasing container with custom dark/light theme support.
  */
-const SettingsCard = ({ title, description, children, icon }) => {
+const SettingsCard = memo(({ title, description, children, icon }) => {
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 shadow-sm transition-all duration-200 hover:shadow-md">
       <div className="flex items-start gap-4 mb-6">
@@ -30,6 +32,6 @@ const SettingsCard = ({ title, description, children, icon }) => {
       </div>
     </div>
   );
-};
+});
 
 export default SettingsCard;

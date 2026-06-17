@@ -1,10 +1,12 @@
 
 
+import { memo } from 'react';
+
 /**
  * AnalyticsCard Component
  * Displays a single key business metric with dark/light mode and skeleton state support.
  */
-const AnalyticsCard = ({ title, value, icon, loading = false }) => {
+const AnalyticsCard = memo(({ title, value, icon, loading = false }) => {
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 flex items-center justify-between shadow-sm transition-all duration-300 hover:border-indigo-500/30 dark:hover:border-indigo-500/30 hover:shadow-md hover:-translate-y-0.5 group">
       
@@ -34,6 +36,6 @@ const AnalyticsCard = ({ title, value, icon, loading = false }) => {
 
     </div>
   );
-};
+});
 
 export default AnalyticsCard;

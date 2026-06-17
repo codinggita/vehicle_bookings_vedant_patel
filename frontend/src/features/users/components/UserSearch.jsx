@@ -1,33 +1,31 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setFilters } from '../store/userSlice';
+import { useDebounce } from '@hooks/useDebounce';
 
 /**
  * UserSearch Component
  * Text input with debouncing to search users by name or email.
  */
-const UserSearch = () => {
+const UserSearch = React.memo(() => {
   const dispatch = useDispatch();
   const searchFilter = useSelector((state) => state.users.filters.search);
   const [searchTerm, setSearchTerm] = useState(searchFilter);
 
+  // Use the custom debounce hook
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-
-  // Debounce effect: wait 300ms after user stops typing to trigger filter dispatch
+  // Effect to dispatch the filter change when debounced term changes
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (searchTerm !== searchFilter) {
-        dispatch(setFilters({ search: searchTerm }));
-      }
-    }, 300);
+    if (debouncedSearchTerm !== searchFilter) {
+      dispatch(setFilters({ search: debouncedSearchTerm }));
+    }
+  }, [debouncedSearchTerm, dispatch, searchFilter]);
 
-    return () => clearTimeout(timer);
-  }, [searchTerm, dispatch, searchFilter]);
-
-  const handleClear = () => {
+  const handleClear = useCallback(() => {
     setSearchTerm('');
     dispatch(setFilters({ search: '' }));
-  };
+  }, [dispatch]);
 
   return (
     <div className="relative w-full sm:max-w-xs">
@@ -58,6 +56,6 @@ const UserSearch = () => {
       )}
     </div>
   );
-};
+});
 
 export default UserSearch;

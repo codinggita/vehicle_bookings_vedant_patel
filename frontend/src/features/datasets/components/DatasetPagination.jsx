@@ -1,3 +1,4 @@
+import { useCallback, useMemo, memo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
@@ -6,7 +7,7 @@ import { useSelector } from 'react-redux';
  * Renders next/prev page buttons, entries stats, and limit dropdown selector.
  * Synchronizes with URL search parameters.
  */
-const DatasetPagination = () => {
+const DatasetPagination = memo(() => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { pagination } = useSelector((state) => state.datasets);
 
@@ -15,24 +16,23 @@ const DatasetPagination = () => {
   const limit = pagination?.limit || 10;
   const total = pagination?.total || 0;
 
-  const handlePageChange = (newPage) => {
+  const handlePageChange = useCallback((newPage) => {
     if (newPage >= 1 && newPage <= totalPages) {
       const nextParams = new URLSearchParams(searchParams);
       nextParams.set('page', String(newPage));
       setSearchParams(nextParams);
     }
-  };
+  }, [totalPages, searchParams, setSearchParams]);
 
-  const handleLimitChange = (e) => {
+  const handleLimitChange = useCallback((e) => {
     const nextParams = new URLSearchParams(searchParams);
     nextParams.set('limit', e.target.value);
-    nextParams.set('page', '1'); // reset page to 1 on limit change
+    nextParams.set('page', '1');
     setSearchParams(nextParams);
-  };
+  }, [searchParams, setSearchParams]);
 
-  // Calculate items ranges (e.g. "Showing 1 to 10 of 45 entries")
-  const startEntry = total === 0 ? 0 : (currentPage - 1) * limit + 1;
-  const endEntry = Math.min(currentPage * limit, total);
+  const startEntry = useMemo(() => total === 0 ? 0 : (currentPage - 1) * limit + 1, [total, currentPage, limit]);
+  const endEntry = useMemo(() => Math.min(currentPage * limit, total), [currentPage, limit, total]);
 
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4.5 bg-slate-900/40 border-t border-slate-800/80 select-none">
@@ -107,6 +107,6 @@ const DatasetPagination = () => {
 
     </div>
   );
-};
+});
 
 export default DatasetPagination;

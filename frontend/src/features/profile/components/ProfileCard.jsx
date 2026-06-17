@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 /**
  * ProfileCard Component
  * Displays read-only profile detail rows with badges and metadata.
@@ -5,7 +7,7 @@
  * @param {Object} props
  * @param {Object} props.profile - User profile info
  */
-const ProfileCard = ({ profile }) => {
+const ProfileCard = memo(({ profile }) => {
   
   const formatDate = (dateStr) => {
     if (!dateStr) return 'N/A';
@@ -79,6 +81,6 @@ const ProfileCard = ({ profile }) => {
 
     </div>
   );
-};
+});
 
 export default ProfileCard;
