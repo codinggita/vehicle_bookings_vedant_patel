@@ -12,6 +12,7 @@ import PublicRoute from './PublicRoute';
 import RoleBasedRoute from './RoleBasedRoute';
 import DashboardLayout from '@layouts/DashboardLayout';
 import UsersPage from '@features/users/pages/UsersPage';
+import DatasetsPage from '@features/datasets/pages/DatasetsPage';
 
 const AppRoutes = () => {
   return (
@@ -47,6 +48,16 @@ const AppRoutes = () => {
       >
         <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
         <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
+
+        {/* Bookings Dataset Route */}
+        <Route
+          path="/bookings"
+          element={
+            <RoleBasedRoute allowedRoles={['admin', 'user']}>
+              <DatasetsPage />
+            </RoleBasedRoute>
+          }
+        />
 
         {/* User Management Route (Restricted to Admins) */}
         <Route
