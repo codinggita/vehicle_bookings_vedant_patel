@@ -177,9 +177,34 @@ const getAllBookings = asyncHandler(async (req, res) => {
     filter.$expr = { $eq: [{ $hour: "$bookingDate" }, parseInt(req.query.hour, 10)] };
   }
 
+  // Support search keyword parameter
+  if (req.query.search) {
+    const cleanSearch = escapeRegex(String(req.query.search).trim());
+    const searchRegex = { $regex: cleanSearch, $options: "i" };
+    filter.$or = [
+      { customerName: searchRegex },
+      { bookingId: searchRegex },
+      { vehicleType: searchRegex }
+    ];
+  }
+
   // Sorting parser
   let sortConfig = { bookingDate: -1 }; // default
-  if (req.query.sort) {
+  if (req.query.sortBy) {
+    const fieldMapping = {
+      fare: "fare",
+      distance: "distance",
+      driverRating: "driverRating",
+      customerRating: "customerRating",
+      bookingDate: "bookingDate",
+      vehicleType: "vehicleType",
+      paymentMethod: "paymentMethod",
+      createdAt: "createdAt"
+    };
+    const mappedField = fieldMapping[req.query.sortBy] || req.query.sortBy;
+    const order = req.query.order === "asc" ? 1 : -1;
+    sortConfig = { [mappedField]: order };
+  } else if (req.query.sort) {
     const rawSort = req.query.sort;
     const isDesc = rawSort.startsWith("-");
     const cleanSortField = isDesc ? rawSort.slice(1) : rawSort;
