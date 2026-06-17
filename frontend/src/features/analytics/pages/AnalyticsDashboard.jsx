@@ -5,6 +5,7 @@ import BookingTrendChart from '../components/BookingTrendChart';
 import VehicleDistributionChart from '../components/VehicleDistributionChart';
 import RealTimeStats from '../components/RealTimeStats';
 import RevenueChart from '../components/RevenueChart';
+import ErrorState from '@components/ui/ErrorState/ErrorState';
 
 /**
  * AnalyticsDashboard Component
@@ -78,23 +79,12 @@ const AnalyticsDashboard = () => {
 
       {/* Error Boundary Banner */}
       {error && (
-        <div className="p-5 rounded-2xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-500/20 text-red-700 dark:text-red-200 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
-          <div className="flex items-center gap-3">
-            <svg className="w-5.5 h-5.5 text-red-500 dark:text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            <div>
-              <p className="font-bold text-sm">Synchronisation Interrupted</p>
-              <p className="text-xs text-red-600/80 dark:text-red-400/80 mt-0.5">{error}</p>
-            </div>
-          </div>
-          <button
-            onClick={refresh}
-            className="flex-shrink-0 px-4 py-2 rounded-xl bg-red-100 hover:bg-red-200 dark:bg-red-500/10 dark:hover:bg-red-500/20 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-300 text-xs font-bold transition-all duration-200"
-          >
-            Try Syncing Again
-          </button>
-        </div>
+        <ErrorState
+          title="Synchronisation Interrupted"
+          message={error}
+          onRetry={refresh}
+          retryLabel="Try Syncing Again"
+        />
       )}
 
       {/* Metrics Cards Grid */}

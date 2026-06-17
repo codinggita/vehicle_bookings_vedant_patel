@@ -1,9 +1,9 @@
-import toast from 'react-hot-toast';
+import notificationService from '@components/notifications/notificationService';
 import storage from './storage';
 
 /**
  * Global API Error Handler
- * Normalizes Axios error payloads and triggers notifications via react-hot-toast.
+ * Normalizes Axios error payloads and triggers notifications via notificationService.
  * Cleans up invalid sessions and handles redirects on 401 Unauthorized responses.
  * 
  * @param {object} error - Axios error object
@@ -24,12 +24,12 @@ export const handleApiError = (error) => {
     switch (status) {
       case 400:
         message = apiMessage || 'Invalid request. Please verify your entries.';
-        toast.error(message);
+        notificationService.showError(message);
         break;
 
       case 401:
         message = 'Session expired. Please log in again.';
-        toast.error(message);
+        notificationService.showError(message);
         
         // Clean session credentials from local storage
         storage.removeItem('token');
@@ -44,22 +44,22 @@ export const handleApiError = (error) => {
 
       case 403:
         message = apiMessage || 'Access Denied: You do not have permission to perform this action.';
-        toast.error(message, { id: 'access-denied-toast' });
+        notificationService.showError(message, { id: 'access-denied-toast' });
         break;
 
       case 404:
         message = apiMessage || 'Requested resource not found.';
-        toast.error(message);
+        notificationService.showError(message);
         break;
 
       case 500:
         message = apiMessage || 'Internal server error. Please try again later.';
-        toast.error(message);
+        notificationService.showError(message);
         break;
 
       default:
         message = apiMessage || `Error (${status}): Something went wrong.`;
-        toast.error(message);
+        notificationService.showError(message);
         break;
     }
   } else if (error.request) {
@@ -69,11 +69,11 @@ export const handleApiError = (error) => {
     } else {
       message = 'Network error. Please check your internet connection or server status.';
     }
-    toast.error(message);
+    notificationService.showError(message);
   } else {
     // Something happened in setting up the request that triggered an Error
     message = error.message || 'An error occurred during request setup.';
-    toast.error(message);
+    notificationService.showError(message);
   }
 
   // Return normalized error object

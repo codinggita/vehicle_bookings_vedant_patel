@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import toast from 'react-hot-toast';
+import notificationService from '@components/notifications/notificationService';
 import { deleteDataset } from '../store/datasetThunks';
 
 /**
@@ -23,13 +23,13 @@ const DeleteDatasetDialog = ({ isOpen, datasetId, bookingId, onClose }) => {
     try {
       const resultAction = await dispatch(deleteDataset(datasetId));
       if (deleteDataset.fulfilled.match(resultAction)) {
-        toast.success('Dataset Deleted Successfully');
+        notificationService.showSuccess('Dataset Deleted Successfully');
         onClose();
       } else {
-        toast.error(resultAction.payload || 'Failed To Delete Dataset');
+        notificationService.showError(resultAction.payload || 'Failed To Delete Dataset');
       }
     } catch {
-      toast.error('Failed To Delete Dataset');
+      notificationService.showError('Failed To Delete Dataset');
     } finally {
       setIsDeleting(false);
     }

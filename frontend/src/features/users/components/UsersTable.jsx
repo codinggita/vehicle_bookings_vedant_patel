@@ -1,6 +1,8 @@
 import UserTableHeader from './UserTableHeader';
 import UserTableRow from './UserTableRow';
+import { TableSkeleton } from '@components/skeletons';
 import EmptyState from '@components/ui/EmptyState/EmptyState';
+import ErrorState from '@components/ui/ErrorState/ErrorState';
 
 /**
  * UsersTable Component
@@ -12,32 +14,9 @@ import EmptyState from '@components/ui/EmptyState/EmptyState';
  * @param {string} props.error - Current error status
  * @param {function} props.onEdit - Edit trigger callback
  * @param {function} props.onDelete - Delete trigger callback
+ * @param {function} [props.onRetry] - Retry callback for error state
  */
-const UsersTable = ({ users, loading, error, onEdit, onDelete }) => {
-  
-  // Render loading skeleton rows to maintain visual height
-  const renderLoadingSkeleton = () => {
-    return (
-      <tbody>
-        {[...Array(5)].map((_, idx) => (
-          <tr key={idx} className="border-b border-slate-850 animate-pulse">
-            <td className="px-6 py-5.5"><div className="h-3 w-16 bg-slate-800 rounded" /></td>
-            <td className="px-6 py-5.5">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-slate-800" />
-                <div className="h-3.5 w-24 bg-slate-800 rounded" />
-              </div>
-            </td>
-            <td className="px-6 py-5.5"><div className="h-3.5 w-40 bg-slate-800 rounded" /></td>
-            <td className="px-6 py-5.5"><div className="h-5 w-16 bg-slate-800 rounded-full" /></td>
-            <td className="px-6 py-5.5"><div className="h-5 w-14 bg-slate-800 rounded-full" /></td>
-            <td className="px-6 py-5.5"><div className="h-3 w-20 bg-slate-800 rounded" /></td>
-            <td className="px-6 py-5.5 text-right"><div className="inline-flex gap-2"><div className="w-7 h-7 bg-slate-800 rounded-lg" /><div className="w-7 h-7 bg-slate-800 rounded-lg" /></div></td>
-          </tr>
-        ))}
-      </tbody>
-    );
-  };
+const UsersTable = ({ users, loading, error, onEdit, onDelete, onRetry }) => {
 
   return (
     <div className="w-full bg-slate-900/40 backdrop-blur-xl border border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
@@ -50,17 +29,17 @@ const UsersTable = ({ users, loading, error, onEdit, onDelete }) => {
 
           {/* Conditional rendering of lists, loaders, or errors */}
           {loading && users.length === 0 ? (
-            renderLoadingSkeleton()
+            <TableSkeleton rows={5} cols={7} />
           ) : error && users.length === 0 ? (
             <tbody>
               <tr>
-                <td colSpan={7} className="px-6 py-12 text-center text-red-400 font-semibold text-sm">
-                  <div className="flex flex-col items-center gap-2">
-                    <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                    <span>{error}</span>
-                  </div>
+                <td colSpan={7} className="px-6 py-12">
+                  <ErrorState
+                    title="Failed to Load Users"
+                    message={error}
+                    onRetry={onRetry}
+                    retryLabel="Try Again"
+                  />
                 </td>
               </tr>
             </tbody>

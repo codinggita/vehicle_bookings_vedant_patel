@@ -1,6 +1,3 @@
-import Button from '../Button/Button';
-
-
 /**
  * Reusable ErrorState Component
  * 
@@ -8,15 +5,17 @@ import Button from '../Button/Button';
  * @param {string} props.title - Error heading title
  * @param {string} [props.message] - Error detail message
  * @param {Function} [props.onRetry] - Callback function for retrying the failed operation
+ * @param {string} [props.retryLabel='Retry'] - Custom label for the retry button
  */
 export default function ErrorState({
   title,
   message,
-  onRetry
+  onRetry,
+  retryLabel = 'Retry'
 }) {
   return (
-    <div className="flex flex-col items-center justify-center text-center p-8 border border-red-150 rounded-xl bg-red-50/30">
-      <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-50 text-red-500 mb-4 shadow-sm">
+    <div className="flex flex-col items-center justify-center text-center p-8 border border-red-150 dark:border-red-900/40 rounded-xl bg-red-50/30 dark:bg-red-950/10">
+      <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 mb-4 shadow-sm">
         <svg 
           className="w-6 h-6" 
           fill="none" 
@@ -31,20 +30,19 @@ export default function ErrorState({
           />
         </svg>
       </div>
-      <h3 className="text-base font-semibold text-slate-800">{title}</h3>
+      <h3 className="text-base font-semibold text-slate-800 dark:text-slate-200">{title}</h3>
       {message && (
-        <p className="mt-1.5 text-sm text-slate-500 max-w-md">
+        <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400 max-w-md">
           {message}
         </p>
       )}
       {onRetry && (
-        <Button
+        <button
           onClick={onRetry}
-          variant="outline"
-          className="mt-5 border-red-200 hover:bg-red-50 text-red-700 focus:ring-red-400 hover:border-red-300"
+          className="mt-5 px-4 py-2 text-xs font-semibold rounded-lg border border-red-200 dark:border-red-800/50 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-700 dark:text-red-400 focus:ring-2 focus:ring-red-400/50 hover:border-red-300 dark:hover:border-red-700 transition-all duration-200"
         >
-          Retry
-        </Button>
+          {retryLabel}
+        </button>
       )}
     </div>
   );
