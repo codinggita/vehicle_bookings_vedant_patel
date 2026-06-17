@@ -228,6 +228,53 @@ const deleteAccount = async (req, res) => {
   }
 };
 
+/**
+ * Update current user profile fields.
+ * PUT /api/v1/profile
+ */
+const updateProfile = async (req, res) => {
+  try {
+    const { name, phone, bio } = req.body;
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    if (name !== undefined) user.name = sanitizeString(name) || user.name;
+    if (phone !== undefined) user.phone = sanitizeString(phone);
+    if (bio !== undefined) user.bio = sanitizeString(bio);
+
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      data: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        isActive: user.isActive,
+        phone: user.phone,
+        bio: user.bio,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt
+      }
+    });
+
+  } catch (error) {
+    console.error("Error during profile update:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error during profile update"
+    });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -236,5 +283,6 @@ module.exports = {
   resetPassword,
   refreshToken,
   getMe,
-  deleteAccount
+  deleteAccount,
+  updateProfile
 };

@@ -42,6 +42,14 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       required: [true, "isActive is required"],
       default: true
+    },
+    phone: {
+      type: String,
+      default: null
+    },
+    bio: {
+      type: String,
+      default: null
     }
   },
   {

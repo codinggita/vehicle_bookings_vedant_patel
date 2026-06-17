@@ -37,6 +37,10 @@ const {
   
   deleteLogs
 } = require("../controllers/others.controller");
+const { updateProfile } = require("../controllers/auth.controller");
+
+// Profile update
+router.put("/profile", protect, updateProfile);
 
 // Query / pagination
 router.get("/customers", protect, getCustomers);
