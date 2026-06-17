@@ -1,6 +1,11 @@
+import DashboardPage from './DashboardPage';
+
+/**
+ * AdminPage component
+ * Displays the core dashboard page for administrative roles.
+ */
 const AdminPage = () => {
-  return <h1>Admin Dashboard</h1>;
+  return <DashboardPage />;
 };
 
 export default AdminPage;
-

@@ -1,6 +1,11 @@
+import DashboardPage from './DashboardPage';
+
+/**
+ * UserPage component
+ * Displays the core dashboard page for standard user roles.
+ */
 const UserPage = () => {
-  return <h1>User Dashboard</h1>;
+  return <DashboardPage />;
 };
 
 export default UserPage;
-
